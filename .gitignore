@@ -1,17 +1,23 @@
 # Dependencies
 node_modules/
 .pnp
-.pnp.js
+.pnp.*
 .yarn/
 
 # Build output
 dist/
 dist-ssr/
 build/
-.next/
 out/
 *.tsbuildinfo
+
+# Next.js
+.next/
+.next-*/
+.swc/
 next-env.d.ts
+/frontend/certificates/
+*.pem
 
 # Test output
 coverage/
