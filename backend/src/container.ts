@@ -4,6 +4,10 @@ import { ContactsRepository } from './features/contacts/contacts.repository';
 import { ContactsService } from './features/contacts/contacts.service';
 import { DealsRepository } from './features/deals/deals.repository';
 import { DealsService } from './features/deals/deals.service';
+import { ProposalsRepository } from './features/proposals/proposals.repository';
+import { ProposalsService } from './features/proposals/proposals.service';
+import { ProposalsController } from './features/proposals/proposals.controller';
+import { buildProposalsRouter } from './features/proposals/proposals.router';
 import { TasksRepository } from './features/tasks/tasks.repository';
 import { TasksService } from './features/tasks/tasks.service';
 import { UsersRepository } from './features/users/users.repository';
@@ -68,6 +72,7 @@ export interface Container {
     audit: Router;
     search: Router;
     dashboard: Router;
+    proposals: Router;
   };
 }
 
@@ -98,12 +103,19 @@ export function createContainer(): Container {
   const tasksService = new TasksService(tasksRepository, auditService);
 
   const notificationsRepository = new NotificationsRepository(prisma);
+  const dealsRepository = new DealsRepository(prisma);
   const notificationsService = new NotificationsService(notificationsRepository, {
     findOverdue: (ownerId) => tasksRepository.findOverdue(ownerId)
-  });
+  }, { findRenewalAlerts: (ownerId, until) => dealsRepository.findRenewalAlerts(ownerId, until) });
 
-  const dealsRepository = new DealsRepository(prisma);
-  const dealsService = new DealsService(dealsRepository, auditService, notificationsService, tagsService);
+  const dealsService = new DealsService(dealsRepository, auditService, notificationsService, tagsService, tasksService);
+  const proposalsRepository = new ProposalsRepository(prisma);
+  const proposalsService = new ProposalsService(
+    proposalsRepository,
+    { findDetailByIdAndOwner: (id, ownerId) => dealsRepository.findDetailByIdAndOwner(id, ownerId) },
+    { markWon: async (ownerId, dealId) => { await dealsService.update(ownerId, dealId, { stage: 'WON' }); } },
+    auditService
+  );
 
   const productsRepository = new ProductsRepository(prisma);
   const productsService = new ProductsService(productsRepository, auditService);
@@ -124,6 +136,7 @@ export function createContainer(): Container {
   const contactsController = new ContactsController(contactsService);
   const companiesController = new CompaniesController(companiesService);
   const dealsController = new DealsController(dealsService);
+  const proposalsController = new ProposalsController(proposalsService);
   const tasksController = new TasksController(tasksService);
   const tagsController = new TagsController(tagsService);
   const productsController = new ProductsController(productsService);
@@ -131,7 +144,7 @@ export function createContainer(): Container {
   const notificationsController = new NotificationsController(notificationsService);
   const auditController = new AuditController(auditService);
   const searchController = new SearchController(searchService);
-  const dashboardController = new DashboardController(dashboardService);
+  const dashboardController = new DashboardController(dashboardService, notificationsService);
 
   return {
     prisma,
@@ -148,7 +161,8 @@ export function createContainer(): Container {
       notifications: buildNotificationsRouter(notificationsController, authMiddleware),
       audit: buildAuditRouter(auditController, authMiddleware),
       search: buildSearchRouter(searchController, authMiddleware),
-      dashboard: buildDashboardRouter(dashboardController, authMiddleware)
+      dashboard: buildDashboardRouter(dashboardController, authMiddleware),
+      proposals: buildProposalsRouter(proposalsController, authMiddleware)
     }
   };
 }

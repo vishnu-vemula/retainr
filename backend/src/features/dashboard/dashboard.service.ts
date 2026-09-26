@@ -30,6 +30,20 @@ export interface DashboardStats {
   revenueByMonth: { month: string; total: number }[];
   topCompanies: { companyId: string | null; name: string; pipelineValue: number; dealCount: number }[];
   tasks: { total: number; open: number; overdue: number };
+  renewals: {
+    items: {
+      id: string; title: string; companyName: string | null; currency: string;
+      monthlyRecurringValue: number; renewalDate: Date | null; daysUntilRenewal: number | null;
+      renewalHealth: 'HEALTHY' | 'AT_RISK' | 'UNKNOWN'; accountHealth: 'RED' | 'YELLOW' | 'GREEN';
+      daysSinceActivity: number;
+    }[];
+    within30: number; within60: number; within90: number; missed: number; atRisk: number;
+    stale14to30: number; stale30plus: number;
+    overdueOnboarding: { id: string; title: string; dealId: string | null; dueDate: Date | null }[];
+    overdueOnboardingCount: number;
+    byCurrency: { currency: string; monthlyRecurringRevenue: number; forecast90: number }[];
+  };
+  operations: { averageLeadToAcceptedDays: number | null; averageOnboardingDays: number | null; activeThisWeek: boolean };
 }
 
 export class DashboardService {
@@ -115,6 +129,84 @@ export class DashboardService {
       dealCount: countOf(group._count)
     }));
 
+    const now = new Date();
+    const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const [retainers, overdueOnboarding, overdueOnboardingCount, onboardingTasks, acceptedProposals, recentAudit] = await Promise.all([
+      this.prisma.deal.findMany({
+        where: { ownerId, stage: 'WON', engagementType: 'RETAINER' },
+        select: {
+          id: true, title: true, currency: true, monthlyRecurringValue: true, renewalDate: true,
+          renewalHealth: true, renewalProbability: true, companyId: true, contactId: true,
+          closedAt: true, serviceStartDate: true, createdAt: true,
+          company: { select: { name: true } }
+        }
+      }),
+      this.prisma.task.findMany({
+        where: { ownerId, onboardingKey: { not: null }, status: { not: 'DONE' }, dueDate: { lt: now } },
+        select: { id: true, title: true, dealId: true, dueDate: true },
+        orderBy: { dueDate: 'asc' }, take: 20
+      }),
+      this.prisma.task.count({ where: { ownerId, onboardingKey: { not: null }, status: { not: 'DONE' }, dueDate: { lt: now } } }),
+      this.prisma.task.findMany({
+        where: { ownerId, onboardingKey: { not: null }, deal: { stage: 'WON' } },
+        select: { dealId: true, status: true, completedAt: true, deal: { select: { closedAt: true } } }
+      }),
+      this.prisma.proposal.findMany({
+        where: { ownerId, status: 'ACCEPTED', respondedAt: { not: null } },
+        select: { respondedAt: true, deal: { select: { createdAt: true } } }
+      }),
+      this.prisma.auditLog.count({ where: { userId: ownerId, createdAt: { gte: weekStart } } })
+    ]);
+
+    const dealIds = retainers.map((deal) => deal.id);
+    const companyIdsForActivity = retainers.map((deal) => deal.companyId).filter((id): id is string => id !== null);
+    const contactIdsForActivity = retainers.map((deal) => deal.contactId).filter((id): id is string => id !== null);
+    const [dealActivity, companyActivity, contactActivity] = await Promise.all([
+      this.prisma.activity.groupBy({ by: ['dealId'], _max: { occurredAt: true }, where: { ownerId, dealId: { in: dealIds } } }),
+      this.prisma.activity.groupBy({ by: ['companyId'], _max: { occurredAt: true }, where: { ownerId, companyId: { in: companyIdsForActivity } } }),
+      this.prisma.activity.groupBy({ by: ['contactId'], _max: { occurredAt: true }, where: { ownerId, contactId: { in: contactIdsForActivity } } })
+    ]);
+    const latestDeal = new Map(dealActivity.map((row) => [row.dealId, row._max.occurredAt]));
+    const latestCompany = new Map(companyActivity.map((row) => [row.companyId, row._max.occurredAt]));
+    const latestContact = new Map(contactActivity.map((row) => [row.contactId, row._max.occurredAt]));
+    const overdueDealIds = new Set(onboardingTasks.filter((task) => task.status !== 'DONE' && task.dealId).map((task) => task.dealId));
+    const renewalItems = retainers.map((deal) => {
+      const last = Math.max(
+        deal.createdAt.getTime(), deal.closedAt?.getTime() ?? 0, deal.serviceStartDate?.getTime() ?? 0,
+        latestDeal.get(deal.id)?.getTime() ?? 0,
+        latestCompany.get(deal.companyId)?.getTime() ?? 0,
+        latestContact.get(deal.contactId)?.getTime() ?? 0
+      );
+      const daysSinceActivity = Math.max(0, Math.floor((now.getTime() - last) / 86_400_000));
+      const daysUntilRenewal = deal.renewalDate ? Math.ceil((deal.renewalDate.getTime() - now.getTime()) / 86_400_000) : null;
+      const accountHealth = deal.renewalHealth === 'AT_RISK' || (daysUntilRenewal !== null && daysUntilRenewal < 0) || daysSinceActivity >= 30 || overdueDealIds.has(deal.id)
+        ? 'RED' as const
+        : deal.renewalHealth === 'UNKNOWN' || daysSinceActivity >= 14 || (daysUntilRenewal !== null && daysUntilRenewal <= 30)
+          ? 'YELLOW' as const : 'GREEN' as const;
+      return { ...deal, companyName: deal.company?.name ?? null, daysUntilRenewal, daysSinceActivity, accountHealth };
+    });
+    const currencyTotals = new Map<string, { monthlyRecurringRevenue: number; forecast90: number }>();
+    for (const deal of renewalItems) {
+      const totals = currencyTotals.get(deal.currency) ?? { monthlyRecurringRevenue: 0, forecast90: 0 };
+      totals.monthlyRecurringRevenue += deal.monthlyRecurringValue;
+      if (deal.daysUntilRenewal !== null && deal.daysUntilRenewal >= 0 && deal.daysUntilRenewal <= 90) {
+        const probability = deal.renewalProbability ?? (deal.renewalHealth === 'HEALTHY' ? 80 : deal.renewalHealth === 'AT_RISK' ? 40 : 50);
+        totals.forecast90 += deal.monthlyRecurringValue * probability / 100;
+      }
+      currencyTotals.set(deal.currency, totals);
+    }
+    const onboardingByDeal = new Map<string, typeof onboardingTasks>();
+    for (const task of onboardingTasks) {
+      if (!task.dealId) continue;
+      const list = onboardingByDeal.get(task.dealId) ?? [];
+      list.push(task);
+      onboardingByDeal.set(task.dealId, list);
+    }
+    const onboardingDurations = [...onboardingByDeal.values()].filter((tasks) => tasks.every((task) => task.status === 'DONE' && task.completedAt) && tasks[0]?.deal?.closedAt)
+      .map((tasks) => (Math.max(...tasks.map((task) => task.completedAt?.getTime() ?? 0)) - (tasks[0]?.deal?.closedAt?.getTime() ?? 0)) / 86_400_000);
+    const proposalDurations = acceptedProposals.filter((proposal) => proposal.respondedAt)
+      .map((proposal) => ((proposal.respondedAt?.getTime() ?? 0) - proposal.deal.createdAt.getTime()) / 86_400_000);
+
     return {
       contacts: { total: contactTotal, byStatus },
       deals: {
@@ -126,7 +218,26 @@ export class DashboardService {
       },
       revenueByMonth,
       topCompanies,
-      tasks: { total: taskTotal, open: taskOpen, overdue: taskOverdue }
+      tasks: { total: taskTotal, open: taskOpen, overdue: taskOverdue },
+      renewals: {
+        items: renewalItems.map(({ company, companyId, contactId, closedAt, serviceStartDate, createdAt, renewalProbability, ...item }) => item)
+          .sort((a, b) => (a.daysUntilRenewal ?? Number.MAX_SAFE_INTEGER) - (b.daysUntilRenewal ?? Number.MAX_SAFE_INTEGER)),
+        within30: renewalItems.filter((deal) => deal.daysUntilRenewal !== null && deal.daysUntilRenewal >= 0 && deal.daysUntilRenewal <= 30).length,
+        within60: renewalItems.filter((deal) => deal.daysUntilRenewal !== null && deal.daysUntilRenewal >= 0 && deal.daysUntilRenewal <= 60).length,
+        within90: renewalItems.filter((deal) => deal.daysUntilRenewal !== null && deal.daysUntilRenewal >= 0 && deal.daysUntilRenewal <= 90).length,
+        missed: renewalItems.filter((deal) => deal.daysUntilRenewal !== null && deal.daysUntilRenewal < 0).length,
+        atRisk: renewalItems.filter((deal) => deal.renewalHealth === 'AT_RISK').length,
+        stale14to30: renewalItems.filter((deal) => deal.daysSinceActivity >= 14 && deal.daysSinceActivity < 30).length,
+        stale30plus: renewalItems.filter((deal) => deal.daysSinceActivity >= 30).length,
+        overdueOnboarding,
+        overdueOnboardingCount,
+        byCurrency: [...currencyTotals.entries()].map(([currency, totals]) => ({ currency, ...totals }))
+      },
+      operations: {
+        averageLeadToAcceptedDays: proposalDurations.length ? proposalDurations.reduce((sum, days) => sum + days, 0) / proposalDurations.length : null,
+        averageOnboardingDays: onboardingDurations.length ? onboardingDurations.reduce((sum, days) => sum + days, 0) / onboardingDurations.length : null,
+        activeThisWeek: recentAudit > 0
+      }
     };
   }
 }

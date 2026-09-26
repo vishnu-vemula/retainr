@@ -50,6 +50,7 @@ export function createApp(): express.Express {
   app.use('/api/v1/contacts', container.routers.contacts);
   app.use('/api/v1/companies', container.routers.companies);
   app.use('/api/v1/deals', container.routers.deals);
+  app.use('/api/v1/proposals', container.routers.proposals);
   app.use('/api/v1/tasks', container.routers.tasks);
   app.use('/api/v1/tags', container.routers.tags);
   app.use('/api/v1/products', container.routers.products);

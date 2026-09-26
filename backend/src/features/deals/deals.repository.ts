@@ -34,6 +34,15 @@ export interface CreateDealInput {
   source?: Prisma.DealCreateInput['source'];
   nextStep?: string | null;
   lostReason?: string | null;
+  churnReason?: string | null;
+  engagementType?: Prisma.DealCreateInput['engagementType'];
+  oneTimeValue?: number;
+  monthlyRecurringValue?: number;
+  serviceStartDate?: Date | null;
+  renewalDate?: Date | null;
+  renewalHealth?: Prisma.DealCreateInput['renewalHealth'];
+  renewalProbability?: number | null;
+  nextReviewDate?: Date | null;
   contactId?: string | null;
   companyId?: string | null;
   expectedCloseDate?: Date | null;
@@ -48,6 +57,7 @@ export interface CreateDealItemData {
   description: string;
   quantity: number;
   unitPrice: number;
+  kind?: Prisma.DealItemCreateInput['kind'];
 }
 
 export type UpdateDealItemData = Partial<CreateDealItemData>;
@@ -77,6 +87,8 @@ export interface IDealsRepository {
   deleteItem(id: string, ownerId: string): Promise<void>;
   sumItemTotals(dealId: string): Promise<number>;
   setValue(id: string, ownerId: string, value: number): Promise<void>;
+  addTemplateItems(ownerId: string, dealId: string, items: CreateDealItemData[]): Promise<DealDetail>;
+  findRenewalAlerts(ownerId: string, until: Date): Promise<{ id: string; title: string; renewalDate: Date | null; renewalHealth: 'HEALTHY' | 'AT_RISK' | 'UNKNOWN' }[]>;
 }
 
 export class DealsRepository implements IDealsRepository {
@@ -153,6 +165,15 @@ export class DealsRepository implements IDealsRepository {
         source: input.source ?? null,
         nextStep: input.nextStep ?? null,
         lostReason: input.lostReason ?? null,
+        churnReason: input.churnReason ?? null,
+        engagementType: input.engagementType ?? 'PROJECT',
+        oneTimeValue: input.oneTimeValue ?? 0,
+        monthlyRecurringValue: input.monthlyRecurringValue ?? 0,
+        serviceStartDate: input.serviceStartDate ?? null,
+        renewalDate: input.renewalDate ?? null,
+        renewalHealth: input.renewalHealth ?? 'UNKNOWN',
+        renewalProbability: input.renewalProbability ?? null,
+        nextReviewDate: input.nextReviewDate ?? null,
         contactId: input.contactId ?? null,
         companyId: input.companyId ?? null,
         expectedCloseDate: input.expectedCloseDate ?? null,
@@ -177,6 +198,15 @@ export class DealsRepository implements IDealsRepository {
         ...(input.source !== undefined && { source: input.source }),
         ...(input.nextStep !== undefined && { nextStep: input.nextStep }),
         ...(input.lostReason !== undefined && { lostReason: input.lostReason }),
+        ...(input.churnReason !== undefined && { churnReason: input.churnReason }),
+        ...(input.engagementType !== undefined && { engagementType: input.engagementType }),
+        ...(input.oneTimeValue !== undefined && { oneTimeValue: input.oneTimeValue }),
+        ...(input.monthlyRecurringValue !== undefined && { monthlyRecurringValue: input.monthlyRecurringValue }),
+        ...(input.serviceStartDate !== undefined && { serviceStartDate: input.serviceStartDate }),
+        ...(input.renewalDate !== undefined && { renewalDate: input.renewalDate }),
+        ...(input.renewalHealth !== undefined && { renewalHealth: input.renewalHealth }),
+        ...(input.renewalProbability !== undefined && { renewalProbability: input.renewalProbability }),
+        ...(input.nextReviewDate !== undefined && { nextReviewDate: input.nextReviewDate }),
         ...(input.contactId !== undefined && { contactId: input.contactId }),
         ...(input.companyId !== undefined && { companyId: input.companyId }),
         ...(input.expectedCloseDate !== undefined && { expectedCloseDate: input.expectedCloseDate }),
@@ -228,7 +258,8 @@ export class DealsRepository implements IDealsRepository {
         productId: input.productId ?? null,
         description: input.description,
         quantity: input.quantity,
-        unitPrice: input.unitPrice
+        unitPrice: input.unitPrice,
+        kind: input.kind ?? 'BASE'
       },
       include: { product: true }
     });
@@ -245,7 +276,8 @@ export class DealsRepository implements IDealsRepository {
         ...(input.productId !== undefined && { productId: input.productId }),
         ...(input.description !== undefined && { description: input.description }),
         ...(input.quantity !== undefined && { quantity: input.quantity }),
-        ...(input.unitPrice !== undefined && { unitPrice: input.unitPrice })
+        ...(input.unitPrice !== undefined && { unitPrice: input.unitPrice }),
+        ...(input.kind !== undefined && { kind: input.kind })
       },
       include: { product: true }
     });
@@ -262,5 +294,29 @@ export class DealsRepository implements IDealsRepository {
 
   async setValue(id: string, ownerId: string, value: number): Promise<void> {
     await this.prisma.deal.update({ where: { id_ownerId: { id, ownerId } }, data: { value } });
+  }
+
+  async addTemplateItems(ownerId: string, dealId: string, items: CreateDealItemData[]): Promise<DealDetail> {
+    return this.prisma.$transaction(async (tx) => {
+      await tx.dealItem.createMany({
+        data: items.map((item) => ({ ownerId, dealId, description: item.description, quantity: item.quantity, unitPrice: item.unitPrice, kind: item.kind ?? 'BASE' }))
+      });
+      const totals = await tx.dealItem.findMany({ where: { ownerId, dealId }, select: { quantity: true, unitPrice: true } });
+      return tx.deal.update({
+        where: { id_ownerId: { id: dealId, ownerId } },
+        data: { value: totals.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0) },
+        include: detailInclude
+      });
+    });
+  }
+
+  findRenewalAlerts(ownerId: string, until: Date): Promise<{ id: string; title: string; renewalDate: Date | null; renewalHealth: 'HEALTHY' | 'AT_RISK' | 'UNKNOWN' }[]> {
+    return this.prisma.deal.findMany({
+      where: { ownerId, stage: 'WON', engagementType: 'RETAINER', OR: [
+        { renewalDate: { lte: until } }, { renewalHealth: 'AT_RISK' }
+      ] },
+      select: { id: true, title: true, renewalDate: true, renewalHealth: true },
+      take: 200
+    });
   }
 }

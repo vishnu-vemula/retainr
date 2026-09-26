@@ -19,6 +19,15 @@ const dealBodySchema = z.object({
   source: z.enum(['INBOUND', 'OUTBOUND', 'REFERRAL', 'PARTNER', 'EVENT', 'OTHER']).nullish(),
   nextStep: z.string().trim().max(200).nullish(),
   lostReason: z.string().trim().max(200).nullish(),
+  churnReason: z.string().trim().max(200).nullish(),
+  engagementType: z.enum(['PROJECT', 'RETAINER']).optional(),
+  oneTimeValue: z.coerce.number().min(0).max(1_000_000_000).optional(),
+  monthlyRecurringValue: z.coerce.number().min(0).max(1_000_000_000).optional(),
+  serviceStartDate: z.coerce.date().nullish(),
+  renewalDate: z.coerce.date().nullish(),
+  renewalHealth: z.enum(['HEALTHY', 'AT_RISK', 'UNKNOWN']).optional(),
+  renewalProbability: z.coerce.number().int().min(0).max(100).nullish(),
+  nextReviewDate: z.coerce.date().nullish(),
   contactId: z.string().min(1).nullish(),
   companyId: z.string().min(1).nullish(),
   expectedCloseDate: z.coerce.date().nullish(),
@@ -73,7 +82,12 @@ export const createDealItemSchema = z.object({
   productId: z.string().min(1).nullish(),
   description: z.string().trim().min(1).max(200),
   quantity: z.coerce.number().int().min(1).max(1000).default(1),
-  unitPrice: z.coerce.number().min(0).max(1_000_000_000).default(0)
+  unitPrice: z.coerce.number().min(0).max(1_000_000_000).default(0),
+  kind: z.enum(['BASE', 'PACKAGE', 'ADD_ON']).default('BASE')
+});
+
+export const applyDealTemplateSchema = z.object({
+  templateId: z.enum(['PAID_ADS', 'SEO', 'WEBSITE'])
 });
 
 export const updateDealItemSchema = createDealItemSchema.partial();

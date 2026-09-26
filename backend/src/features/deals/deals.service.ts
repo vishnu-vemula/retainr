@@ -2,7 +2,9 @@ import type { DealStage } from '@prisma/client';
 import { AppError } from '../../common/utils/app-error';
 import type { AuditLogger } from '../../common/utils/audit-logger';
 import type { NotificationDispatcher } from '../../common/utils/notification-dispatcher';
+import type { OnboardingTaskCreator } from '../../common/utils/onboarding-task-creator';
 import type { TagsOwnershipChecker } from '../contacts/contacts.service';
+import { DEAL_TEMPLATES, type DealTemplateId } from './deal-templates';
 import type {
   DealDetail,
   DealItemWithProduct,
@@ -33,7 +35,8 @@ export class DealsService {
     private readonly repo: IDealsRepository,
     private readonly audit: AuditLogger,
     private readonly notifications: NotificationDispatcher,
-    private readonly tags: TagsOwnershipChecker
+    private readonly tags: TagsOwnershipChecker,
+    private readonly onboarding: OnboardingTaskCreator
   ) {}
 
   list(ownerId: string, query: ListDealsQuery): Promise<{ items: DealWithRelations[]; total: number }> {
@@ -73,6 +76,7 @@ export class DealsService {
     });
     await this.audit.log(ownerId, 'CREATE', 'DEAL', deal.id, `Created deal "${deal.title}" (${deal.value} ${deal.currency})`);
     if (stage === 'WON') {
+      await this.onboarding.createForWonDeal(ownerId, deal.id, deal.contactId);
       await this.notifyWon(ownerId, deal);
     }
     return deal;
@@ -97,8 +101,11 @@ export class DealsService {
     if (stageChanged && nextStage !== undefined) {
       await this.audit.log(ownerId, 'STAGE_CHANGE', 'DEAL', id, `${existing.stage} → ${nextStage}`);
       if (nextStage === 'WON') {
+        await this.onboarding.createForWonDeal(ownerId, updated.id, updated.contactId);
         await this.notifyWon(ownerId, updated);
       }
+    } else if (nextStage === 'WON') {
+      await this.onboarding.createForWonDeal(ownerId, updated.id, updated.contactId);
     }
     return updated;
   }
@@ -146,6 +153,7 @@ export class DealsService {
       }
       await this.audit.log(ownerId, 'STAGE_CHANGE', 'DEAL', update.id, `${existing.stage} → ${update.stage}`);
       if (update.stage === 'WON') {
+        await this.onboarding.createForWonDeal(ownerId, deal.id, deal.contactId);
         await this.notifyWon(ownerId, deal);
       }
     }
@@ -160,6 +168,14 @@ export class DealsService {
     await this.recalcValueFromItems(ownerId, dealId);
     await this.audit.log(ownerId, 'UPDATE', 'DEAL', dealId, `Added line item "${item.description}"`);
     return item;
+  }
+
+  async applyTemplate(ownerId: string, dealId: string, templateId: DealTemplateId): Promise<DealDetail> {
+    await this.get(ownerId, dealId);
+    const template = DEAL_TEMPLATES[templateId];
+    const deal = await this.repo.addTemplateItems(ownerId, dealId, template.items.map((item) => ({ ...item })));
+    await this.audit.log(ownerId, 'UPDATE', 'DEAL', dealId, `Added ${template.name} quote items`);
+    return deal;
   }
 
   async updateItem(ownerId: string, dealId: string, itemId: string, input: UpdateDealItemInput): Promise<DealItemWithProduct> {

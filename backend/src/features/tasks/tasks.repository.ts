@@ -1,5 +1,6 @@
 import type { Prisma, TaskStatus } from '@prisma/client';
 import type { PrismaService } from '../../database/prisma';
+import { randomUUID } from 'node:crypto';
 
 const taskInclude = { contact: { select: { id: true, name: true } }, deal: { select: { id: true, title: true } } } as const;
 
@@ -34,6 +35,7 @@ export interface ITasksRepository {
   create(ownerId: string, input: CreateTaskInput): Promise<TaskWithRelations>;
   update(id: string, ownerId: string, input: UpdateTaskInput): Promise<TaskWithRelations>;
   delete(id: string, ownerId: string): Promise<void>;
+  createOnboardingTasks(ownerId: string, dealId: string, contactId: string | null, tasks: { key: string; title: string; dueDate: Date }[]): Promise<TaskWithRelations[]>;
 }
 
 export class TasksRepository implements ITasksRepository {
@@ -118,5 +120,24 @@ export class TasksRepository implements ITasksRepository {
 
   async delete(id: string, ownerId: string): Promise<void> {
     await this.prisma.task.delete({ where: { id_ownerId: { id, ownerId } } });
+  }
+
+  async createOnboardingTasks(ownerId: string, dealId: string, contactId: string | null, tasks: { key: string; title: string; dueDate: Date }[]): Promise<TaskWithRelations[]> {
+    const data = tasks.map((task) => ({
+      id: randomUUID(),
+      ownerId,
+      dealId,
+      contactId,
+      onboardingKey: task.key,
+      title: task.title,
+      dueDate: task.dueDate,
+      status: 'TODO' as const,
+      priority: 'HIGH' as const
+    }));
+    await this.prisma.task.createMany({ data, skipDuplicates: true });
+    return this.prisma.task.findMany({
+      where: { ownerId, id: { in: data.map((task) => task.id) } },
+      include: taskInclude
+    });
   }
 }

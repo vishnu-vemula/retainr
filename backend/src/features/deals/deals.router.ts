@@ -6,6 +6,7 @@ export function buildDealsRouter(controller: DealsController, auth: AuthMiddlewa
   const router = Router();
   router.use(auth.requireAuth);
   router.patch('/reorder', controller.reorder);
+  router.get('/templates', controller.templates);
   router.get('/', controller.list);
   router.post('/', controller.create);
   router.get('/:id', controller.get);
@@ -13,6 +14,7 @@ export function buildDealsRouter(controller: DealsController, auth: AuthMiddlewa
   router.patch('/:id/tags', controller.setTags);
   router.delete('/:id', controller.remove);
   router.post('/:id/items', controller.addItem);
+  router.post('/:id/template', controller.applyTemplate);
   router.patch('/:id/items/:itemId', controller.updateItem);
   router.delete('/:id/items/:itemId', controller.removeItem);
   return router;

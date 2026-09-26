@@ -46,6 +46,30 @@ enum DealSource {
   OTHER
 }
 
+enum EngagementType {
+  PROJECT
+  RETAINER
+}
+
+enum RenewalHealth {
+  HEALTHY
+  AT_RISK
+  UNKNOWN
+}
+
+enum DealItemKind {
+  BASE
+  PACKAGE
+  ADD_ON
+}
+
+enum ProposalStatus {
+  CREATED
+  VIEWED
+  ACCEPTED
+  DECLINED
+}
+
 enum TaskStatus {
   TODO
   IN_PROGRESS
@@ -69,6 +93,8 @@ enum ActivityType {
 enum NotificationType {
   TASK_OVERDUE
   DEAL_WON
+  RENEWAL_DUE
+  RETAINER_AT_RISK
 }
 
 enum AuditAction {
@@ -86,57 +112,59 @@ enum EntityType {
   ACTIVITY
   TAG
   PRODUCT
+  PROPOSAL
 }
 
 model User {
-  id          String        @id
-  email       String        @unique
-  displayName String?
-  photoURL    String?
-  role        Role          @default(MEMBER)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  contacts    Contact[]
-  companies   Company[]
-  deals       Deal[]
-  tasks       Task[]
-  tags        Tag[]
-  products    Product[]
-  activities  Activity[]
-  dealItems   DealItem[]
+  id            String         @id
+  email         String         @unique
+  displayName   String?
+  photoURL      String?
+  role          Role           @default(MEMBER)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  contacts      Contact[]
+  companies     Company[]
+  deals         Deal[]
+  tasks         Task[]
+  tags          Tag[]
+  products      Product[]
+  activities    Activity[]
+  dealItems     DealItem[]
   notifications Notification[]
+  proposals     Proposal[]
 }
 
 model Company {
-  id              String    @id @default(cuid())
-  name            String
-  domain          String?   @unique
-  industry        String?
-  phone           String?
-  city            String?
-  country         String?
-  employeeCount   Int?
-  annualRevenue   Float?
-  notes           String?
-  ownerId         String
-  owner           User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  contacts        Contact[]
-  deals           Deal[]
-  activities      Activity[]
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id            String     @id @default(cuid())
+  name          String
+  domain        String?    @unique
+  industry      String?
+  phone         String?
+  city          String?
+  country       String?
+  employeeCount Int?
+  annualRevenue Float?
+  notes         String?
+  ownerId       String
+  owner         User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  contacts      Contact[]
+  deals         Deal[]
+  activities    Activity[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
-  @@index([ownerId])
   @@unique([id, ownerId])
+  @@index([ownerId])
 }
 
 model Contact {
-  id             String          @id @default(cuid())
+  id             String         @id @default(cuid())
   name           String
   email          String?
   phone          String?
   position       String?
-  status         ContactStatus   @default(LEAD)
+  status         ContactStatus  @default(LEAD)
   website        String?
   city           String?
   country        String?
@@ -144,19 +172,19 @@ model Contact {
   notes          String?
   lastActivityAt DateTime?
   companyId      String?
-  company        Company?        @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  company        Company?       @relation(fields: [companyId], references: [id], onDelete: SetNull)
   ownerId        String
-  owner          User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner          User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   deals          Deal[]
   tasks          Task[]
   activities     Activity[]
   tags           Tag[]
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
+  @@unique([id, ownerId])
   @@index([ownerId, status])
   @@index([ownerId, name])
-  @@unique([id, ownerId])
 }
 
 model Tag {
@@ -175,17 +203,17 @@ model Tag {
 }
 
 model Product {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   name      String
   sku       String?
-  price     Float    @default(0)
-  currency  String   @default("USD")
-  active    Boolean  @default(true)
+  price     Float      @default(0)
+  currency  String     @default("USD")
+  active    Boolean    @default(true)
   ownerId   String
-  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner     User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   items     DealItem[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   @@unique([ownerId, sku])
   @@unique([id, ownerId])
@@ -193,52 +221,64 @@ model Product {
 }
 
 model Deal {
-  id                String       @id @default(cuid())
-  title             String
-  value             Float        @default(0)
-  currency          String       @default("USD")
-  stage             DealStage    @default(NEW)
-  position          Float        @default(0)
-  probability       Int          @default(10)
-  source            DealSource?
-  nextStep          String?
-  lostReason        String?
-  contactId         String?
-  contact           Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
-  companyId         String?
-  company           Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
-  ownerId           String
-  owner             User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  expectedCloseDate DateTime?
-  closedAt          DateTime?
-  notes             String?
-  items       DealItem[]
-  activities  Activity[]
-  tasks       Task[]
-  tags        Tag[]
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+  id                    String         @id @default(cuid())
+  title                 String
+  value                 Float          @default(0)
+  currency              String         @default("USD")
+  stage                 DealStage      @default(NEW)
+  position              Float          @default(0)
+  probability           Int            @default(10)
+  source                DealSource?
+  nextStep              String?
+  lostReason            String?
+  churnReason           String?
+  engagementType        EngagementType @default(PROJECT)
+  oneTimeValue          Float          @default(0)
+  monthlyRecurringValue Float          @default(0)
+  serviceStartDate      DateTime?
+  renewalDate           DateTime?
+  renewalHealth         RenewalHealth  @default(UNKNOWN)
+  renewalProbability    Int?
+  nextReviewDate        DateTime?
+  contactId             String?
+  contact               Contact?       @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  companyId             String?
+  company               Company?       @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  ownerId               String
+  owner                 User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  expectedCloseDate     DateTime?
+  closedAt              DateTime?
+  notes                 String?
+  items                 DealItem[]
+  activities            Activity[]
+  tasks                 Task[]
+  tags                  Tag[]
+  proposals             Proposal[]
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
 
-  @@index([ownerId, stage, position])
   @@unique([id, ownerId])
+  @@index([ownerId, stage, position])
+  @@index([ownerId, engagementType, renewalDate])
 }
 
 model DealItem {
-  id          String   @id @default(cuid())
+  id          String       @id @default(cuid())
   dealId      String
-  deal        Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  deal        Deal         @relation(fields: [dealId], references: [id], onDelete: Cascade)
   productId   String?
-  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  product     Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
   description String
-  quantity    Int      @default(1)
-  unitPrice   Float    @default(0)
+  quantity    Int          @default(1)
+  unitPrice   Float        @default(0)
+  kind        DealItemKind @default(BASE)
   ownerId     String
-  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  owner       User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
-  @@index([dealId])
   @@unique([id, ownerId])
+  @@index([dealId])
 }
 
 model Activity {
@@ -259,57 +299,80 @@ model Activity {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
+  @@unique([id, ownerId])
   @@index([ownerId, occurredAt])
   @@index([ownerId, contactId])
   @@index([ownerId, dealId])
-  @@unique([id, ownerId])
 }
 
 model Task {
-  id          String       @id @default(cuid())
-  title       String
-  description String?
-  dueDate     DateTime?
-  status      TaskStatus   @default(TODO)
-  priority    TaskPriority?
-  contactId   String?
-  contact     Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
-  dealId      String?
-  deal        Deal?        @relation(fields: [dealId], references: [id], onDelete: SetNull)
-  ownerId     String
-  owner       User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  completedAt DateTime?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id            String        @id @default(cuid())
+  title         String
+  description   String?
+  dueDate       DateTime?
+  status        TaskStatus    @default(TODO)
+  priority      TaskPriority?
+  contactId     String?
+  contact       Contact?      @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  dealId        String?
+  deal          Deal?         @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  ownerId       String
+  owner         User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  completedAt   DateTime?
+  onboardingKey String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
+  @@unique([id, ownerId])
+  @@unique([ownerId, dealId, onboardingKey])
   @@index([ownerId, status])
   @@index([ownerId, dueDate])
+}
+
+model Proposal {
+  id                String         @id @default(cuid())
+  ownerId           String
+  owner             User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  dealId            String
+  deal              Deal           @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  tokenHash         String         @unique
+  status            ProposalStatus @default(CREATED)
+  snapshot          Json
+  expiresAt         DateTime
+  viewedAt          DateTime?
+  respondedAt       DateTime?
+  selectedPackageId String?
+  selectedAddonIds  String[]       @default([])
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
   @@unique([id, ownerId])
+  @@index([ownerId, dealId, createdAt])
 }
 
 model Notification {
-  id         String           @id @default(cuid())
-  type       NotificationType
-  title      String
-  body       String?
-  readAt     DateTime?
-  dedupeKey  String?
-  ownerId    String
-  owner      User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  createdAt  DateTime         @default(now())
+  id        String           @id @default(cuid())
+  type      NotificationType
+  title     String
+  body      String?
+  readAt    DateTime?
+  dedupeKey String?
+  ownerId   String
+  owner     User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
 
   @@unique([ownerId, dedupeKey])
   @@index([ownerId, readAt])
 }
 
 model AuditLog {
-  id         String     @id @default(cuid())
+  id         String      @id @default(cuid())
   userId     String
   action     AuditAction
   entityType EntityType
   entityId   String
   summary    String
-  createdAt  DateTime   @default(now())
+  createdAt  DateTime    @default(now())
 
   @@index([userId, createdAt])
   @@index([entityType, entityId, createdAt])
