@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../../shared/components/ui/select'
-import { CURRENCIES, DEAL_SOURCES, DEAL_STAGES, type Deal, type DealStage } from '../../../shared/types'
+import { CURRENCIES, DEAL_SOURCES, DEAL_STAGES, DEAL_STAGE_LABELS, type Deal, type DealStage } from '../../../shared/types'
 import { dealFormSchema, type DealFormValues } from '../model/schema'
 import {
   useCreateDeal,
@@ -44,6 +44,15 @@ function toFormValues(deal: Deal | null): DealFormValues {
       source: '',
       nextStep: '',
       lostReason: '',
+      churnReason: '',
+      engagementType: 'PROJECT',
+      oneTimeValue: 0,
+      monthlyRecurringValue: 0,
+      serviceStartDate: '',
+      renewalDate: '',
+      renewalHealth: 'UNKNOWN',
+      renewalProbability: '',
+      nextReviewDate: '',
       contactId: '',
       companyId: '',
       expectedCloseDate: '',
@@ -59,6 +68,15 @@ function toFormValues(deal: Deal | null): DealFormValues {
     source: deal.source ?? '',
     nextStep: deal.nextStep ?? '',
     lostReason: deal.lostReason ?? '',
+    churnReason: deal.churnReason ?? '',
+    engagementType: deal.engagementType,
+    oneTimeValue: deal.oneTimeValue,
+    monthlyRecurringValue: deal.monthlyRecurringValue,
+    serviceStartDate: deal.serviceStartDate?.slice(0, 10) ?? '',
+    renewalDate: deal.renewalDate?.slice(0, 10) ?? '',
+    renewalHealth: deal.renewalHealth,
+    renewalProbability: deal.renewalProbability ?? '',
+    nextReviewDate: deal.nextReviewDate?.slice(0, 10) ?? '',
     contactId: deal.contactId ?? '',
     companyId: deal.companyId ?? '',
     expectedCloseDate: deal.expectedCloseDate ? deal.expectedCloseDate.slice(0, 10) : '',
@@ -91,6 +109,7 @@ export function DealDialog({ deal, defaultStage, onClose }: DealDialogProps) {
   })
 
   const stage = watch('stage')
+  const engagementType = watch('engagementType')
 
   const onSubmit = handleSubmit(async (values) => {
     const input = {
@@ -102,6 +121,15 @@ export function DealDialog({ deal, defaultStage, onClose }: DealDialogProps) {
       source: values.source || null,
       nextStep: values.nextStep || undefined,
       lostReason: values.lostReason || undefined,
+      churnReason: values.churnReason || undefined,
+      engagementType: values.engagementType,
+      oneTimeValue: values.oneTimeValue,
+      monthlyRecurringValue: values.monthlyRecurringValue,
+      serviceStartDate: values.serviceStartDate || null,
+      renewalDate: values.renewalDate || null,
+      renewalHealth: values.renewalHealth,
+      renewalProbability: values.renewalProbability === '' ? null : values.renewalProbability,
+      nextReviewDate: values.nextReviewDate || null,
       contactId: values.contactId || null,
       companyId: values.companyId || null,
       expectedCloseDate: values.expectedCloseDate || null,
@@ -174,7 +202,7 @@ export function DealDialog({ deal, defaultStage, onClose }: DealDialogProps) {
                   <SelectContent>
                     {DEAL_STAGES.map((value) => (
                       <SelectItem key={value} value={value}>
-                        {value.charAt(0) + value.slice(1).toLowerCase()}
+                        {DEAL_STAGE_LABELS[value]}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -202,6 +230,59 @@ export function DealDialog({ deal, defaultStage, onClose }: DealDialogProps) {
             <Label htmlFor="deal-lost-reason">Lost reason</Label>
             <Textarea id="deal-lost-reason" rows={2} {...register('lostReason')} />
           </div>
+        ) : null}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label>Engagement type</Label>
+            <Controller control={control} name="engagementType" render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PROJECT">Project</SelectItem>
+                  <SelectItem value="RETAINER">Retainer</SelectItem>
+                </SelectContent>
+              </Select>
+            )} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="deal-one-time">One-time project value</Label>
+            <Input id="deal-one-time" type="number" min="0" step="any" {...register('oneTimeValue')} />
+          </div>
+        </div>
+        {engagementType === 'RETAINER' ? (
+          <>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="deal-monthly">Monthly recurring value</Label>
+                <Input id="deal-monthly" type="number" min="0" step="any" {...register('monthlyRecurringValue')} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="deal-renewal-probability">Renewal probability (%)</Label>
+                <Input id="deal-renewal-probability" type="number" min="0" max="100" step="1" {...register('renewalProbability')} />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2"><Label htmlFor="deal-service-start">Service start</Label><Input id="deal-service-start" type="date" {...register('serviceStartDate')} /></div>
+              <div className="space-y-2"><Label htmlFor="deal-renewal-date">Renewal date</Label><Input id="deal-renewal-date" type="date" {...register('renewalDate')} /></div>
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2"><Label htmlFor="deal-next-review">Next client review</Label><Input id="deal-next-review" type="date" {...register('nextReviewDate')} /></div>
+              <div className="space-y-2">
+                <Label>Renewal health</Label>
+                <Controller control={control} name="renewalHealth" render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="UNKNOWN">Unknown</SelectItem>
+                      <SelectItem value="HEALTHY">Healthy</SelectItem>
+                      <SelectItem value="AT_RISK">At risk</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )} />
+              </div>
+            </div>
+            <div className="space-y-2"><Label htmlFor="deal-churn-reason">Churn reason</Label><Textarea id="deal-churn-reason" rows={2} {...register('churnReason')} /></div>
+          </>
         ) : null}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">

@@ -1,5 +1,5 @@
 import { apiFetch } from '../../../shared/lib/api-client'
-import type { Deal, DealDetail, DealItem, DealSource, DealStage, Page, ReorderUpdate } from '../../../shared/types'
+import type { Deal, DealDetail, DealItem, DealItemKind, DealSource, DealStage, EngagementType, RenewalHealth, Page, ReorderUpdate } from '../../../shared/types'
 
 export interface ListDealsParams {
   stage?: DealStage
@@ -20,6 +20,15 @@ export interface DealInput {
   source?: DealSource | null
   nextStep?: string
   lostReason?: string
+  churnReason?: string
+  engagementType?: EngagementType
+  oneTimeValue?: number
+  monthlyRecurringValue?: number
+  serviceStartDate?: string | null
+  renewalDate?: string | null
+  renewalHealth?: RenewalHealth
+  renewalProbability?: number | null
+  nextReviewDate?: string | null
   contactId?: string | null
   companyId?: string | null
   expectedCloseDate?: string | null
@@ -31,6 +40,22 @@ export interface DealItemInput {
   description: string
   quantity: number
   unitPrice: number
+  kind?: DealItemKind
+}
+
+export type DealTemplateId = 'PAID_ADS' | 'SEO' | 'WEBSITE'
+export type DealTemplates = Record<DealTemplateId, { name: string; items: { description: string; quantity: number; unitPrice: number; kind: DealItemKind }[] }>
+
+export async function getDealTemplates(): Promise<DealTemplates> {
+  const result = await apiFetch<DealTemplates>('/deals/templates')
+  if (result === null) throw new Error('Unexpected empty response from /deals/templates')
+  return result
+}
+
+export async function applyDealTemplate(dealId: string, templateId: DealTemplateId): Promise<DealDetail> {
+  const result = await apiFetch<DealDetail>(`/deals/${dealId}/template`, { method: 'POST', body: JSON.stringify({ templateId }) })
+  if (result === null) throw new Error('Unexpected empty response from POST /deals/:id/template')
+  return result
 }
 
 export async function listDeals(params: ListDealsParams): Promise<Page<Deal>> {

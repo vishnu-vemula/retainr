@@ -1,5 +1,5 @@
 import { Badge } from './ui/badge'
-import type { ContactStatus, DealStage, TaskPriority, TaskStatus } from '../types'
+import { DEAL_STAGE_LABELS, type ContactStatus, type DealStage, type TaskPriority, type TaskStatus } from '../types'
 import { titleCase } from '../lib/format'
 
 export type BadgeVariant = ContactStatus | DealStage | TaskStatus | TaskPriority | string
@@ -44,7 +44,7 @@ export function StatusBadge({ variant }: StatusBadgeProps) {
   return (
     <Badge variant={variant ? variantStyles[variant] ?? 'muted' : 'muted'}>
       <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" aria-hidden="true" />
-      {variant ? titleCase(variant) : '—'}
+      {variant ? DEAL_STAGE_LABELS[variant as DealStage] ?? titleCase(variant) : '—'}
     </Badge>
   )
 }

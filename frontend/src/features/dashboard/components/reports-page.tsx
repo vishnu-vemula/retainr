@@ -9,7 +9,7 @@ import { Skeleton } from '../../../shared/components/ui/skeleton'
 import { formatCompactCurrency, titleCase } from '../../../shared/lib/format'
 import { stageDotClass } from '../../../shared/lib/stage-style'
 import { cn } from '../../../shared/lib/utils'
-import { CONTACT_STATUSES, DEAL_STAGES, type ContactStatus, type DashboardStats } from '../../../shared/types'
+import { CONTACT_STATUSES, DEAL_STAGES, DEAL_STAGE_LABELS, type ContactStatus, type DashboardStats } from '../../../shared/types'
 import { RevenueChart, SectionTitle, StatTile, plural } from './dashboard-widgets'
 
 const statusColor: Record<ContactStatus, string> = {
@@ -34,7 +34,7 @@ function StageDistribution({ stats }: { stats: DashboardStats }) {
           <li key={stage} className="grid grid-cols-[7.5rem_1fr_4.5rem] items-center gap-3 text-sm">
             <span className="flex items-center gap-2 font-medium text-foreground">
               <span className={cn('h-2 w-2 rounded-full', stageDotClass[stage])} />
-              {titleCase(stage)}
+              {DEAL_STAGE_LABELS[stage]}
             </span>
             <span className="h-2.5 overflow-hidden rounded-full bg-secondary">
               <span

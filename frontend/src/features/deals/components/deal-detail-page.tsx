@@ -12,6 +12,9 @@ import {
   useUpdateDealItem,
 } from '../hooks/use-deal-mutations'
 import { DealDialog } from './deal-dialog'
+import { useApplyDealTemplate, useDealTemplates } from '../hooks/use-deal-templates'
+import type { DealTemplateId } from '../api/deals-api'
+import { ProposalPanel } from '../../proposals/components/proposal-panel'
 import { DetailHeader } from '../../../shared/components/detail-header'
 import { DescriptionList } from '../../../shared/components/description-list'
 import { SkeletonList } from '../../../shared/components/skeleton'
@@ -38,7 +41,7 @@ import {
   TableRow,
 } from '../../../shared/components/ui/table'
 import { formatCurrency, formatDate, titleCase } from '../../../shared/lib/format'
-import { DEAL_STAGES } from '../../../shared/types'
+import { DEAL_STAGES, DEAL_STAGE_LABELS } from '../../../shared/types'
 import { useProducts } from '../../products/hooks/use-products'
 import { ActivityTimeline } from '../../activities/components/activity-timeline'
 import { ActivityDialog } from '../../activities/components/activity-dialog'
@@ -118,6 +121,7 @@ function AddItemRow({ dealId }: AddItemRowProps) {
   const [description, setDescription] = useState('')
   const [quantity, setQuantity] = useState('1')
   const [unitPrice, setUnitPrice] = useState('')
+  const [kind, setKind] = useState<'BASE' | 'PACKAGE' | 'ADD_ON'>('BASE')
 
   const products = productList?.items ?? []
 
@@ -140,6 +144,7 @@ function AddItemRow({ dealId }: AddItemRowProps) {
           description: description.trim(),
           quantity: Number(quantity) || 1,
           unitPrice: Number(unitPrice) || 0,
+          kind,
         },
       },
       {
@@ -148,6 +153,7 @@ function AddItemRow({ dealId }: AddItemRowProps) {
           setDescription('')
           setQuantity('1')
           setUnitPrice('')
+          setKind('BASE')
         },
       },
     )
@@ -179,6 +185,14 @@ function AddItemRow({ dealId }: AddItemRowProps) {
             value={description}
             onChange={(event) => setDescription(event.target.value)}
           />
+          <Select value={kind} onValueChange={(value) => setKind(value as typeof kind)}>
+            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="BASE">Included</SelectItem>
+              <SelectItem value="PACKAGE">Package choice</SelectItem>
+              <SelectItem value="ADD_ON">Optional add-on</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </TableCell>
       <TableCell>
@@ -228,6 +242,9 @@ export function DealDetailPage() {
   const { data: deal, isLoading } = useDealDetail(dealId ?? '')
   const stageMutation = useUpdateDeal()
   const setTagsMutation = useSetDealTags()
+  const { data: templates } = useDealTemplates()
+  const applyTemplate = useApplyDealTemplate(dealId ?? '')
+  const [templateId, setTemplateId] = useState<DealTemplateId>('PAID_ADS')
   const [editOpen, setEditOpen] = useState(false)
   const [activityOpen, setActivityOpen] = useState(false)
   const [editingTags, setEditingTags] = useState(false)
@@ -292,7 +309,7 @@ export function DealDetailPage() {
               )}
               onClick={() => stageMutation.mutate({ id: deal.id, input: { stage } })}
             >
-              {index + 1}. {titleCase(stage)}
+              {index + 1}. {DEAL_STAGE_LABELS[stage]}
             </button>
           ))}
         </div>
@@ -307,12 +324,21 @@ export function DealDetailPage() {
             items={[
               { label: 'Value', value: formatCurrency(deal.value, deal.currency) },
               { label: 'Probability', value: `${deal.probability}%` },
-              { label: 'Stage', value: titleCase(deal.stage) },
+              { label: 'Stage', value: DEAL_STAGE_LABELS[deal.stage] },
               { label: 'Source', value: deal.source ? titleCase(deal.source) : '—' },
               { label: 'Expected close', value: formatDate(deal.expectedCloseDate) },
               { label: 'Closed at', value: formatDate(deal.closedAt) },
               { label: 'Next step', value: deal.nextStep ?? '—' },
               { label: 'Lost reason', value: deal.lostReason ?? '—' },
+              { label: 'Engagement', value: deal.engagementType === 'RETAINER' ? 'Retainer' : 'Project' },
+              { label: 'One-time value', value: formatCurrency(deal.oneTimeValue, deal.currency) },
+              { label: 'Monthly recurring', value: formatCurrency(deal.monthlyRecurringValue, deal.currency) },
+              { label: 'Service start', value: formatDate(deal.serviceStartDate) },
+              { label: 'Renewal date', value: formatDate(deal.renewalDate) },
+              { label: 'Renewal health', value: titleCase(deal.renewalHealth) },
+              { label: 'Renewal probability', value: deal.renewalProbability === null ? '—' : `${deal.renewalProbability}%` },
+              { label: 'Next client review', value: formatDate(deal.nextReviewDate) },
+              { label: 'Churn reason', value: deal.churnReason ?? '—' },
               {
                 label: 'Contact',
                 value:
@@ -391,8 +417,14 @@ export function DealDetailPage() {
 
       <Card className="overflow-hidden">
         <CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle>Line items</CardTitle>
-          <CardDescription>Deal value syncs automatically when items change.</CardDescription>
+          <div><CardTitle>Line items</CardTitle><CardDescription>Deal value syncs automatically when items change.</CardDescription></div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Select value={templateId} onValueChange={(value) => setTemplateId(value as DealTemplateId)}>
+              <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+              <SelectContent>{Object.entries(templates ?? {}).map(([id, template]) => <SelectItem key={id} value={id}>{template.name}</SelectItem>)}</SelectContent>
+            </Select>
+            <Button type="button" variant="outline" size="sm" disabled={!templates || applyTemplate.isPending} onClick={() => applyTemplate.mutate(templateId)}>Add template</Button>
+          </div>
         </CardHeader>
         <Table>
           <TableHeader>
@@ -423,6 +455,8 @@ export function DealDetailPage() {
           </TableFooter>
         </Table>
       </Card>
+
+      <ProposalPanel dealId={deal.id} hasItems={deal.items.length > 0} />
 
       <Card>
         <CardHeader className="flex-row items-center justify-between space-y-0">

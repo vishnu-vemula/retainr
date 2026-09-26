@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
 import { DragDropContext, Droppable, type DropResult } from '@hello-pangea/dnd'
 import { Plus } from 'lucide-react'
-import { DEAL_STAGES, type Deal, type DealStage, type ReorderUpdate } from '../../../shared/types'
-import { titleCase, formatCurrency } from '../../../shared/lib/format'
+import { DEAL_STAGES, DEAL_STAGE_LABELS, type Deal, type DealStage, type ReorderUpdate } from '../../../shared/types'
+import { formatCurrency } from '../../../shared/lib/format'
 import { stageDotClass } from '../../../shared/lib/stage-style'
 import { cn } from '../../../shared/lib/utils'
 import { Badge } from '../../../shared/components/ui/badge'
@@ -97,7 +97,7 @@ export function DealBoard({ search }: DealBoardProps) {
                   <div className="flex items-center gap-2">
                     <span className={cn('h-2.5 w-2.5 rounded-full', stageDotClass[stage])} />
                     <p className="font-display text-[15px] font-semibold tracking-tight text-foreground">
-                      {titleCase(stage)}
+                      {DEAL_STAGE_LABELS[stage]}
                     </p>
                     <Badge variant="outline" className="px-2 tabular-nums">
                       {items.length}

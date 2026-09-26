@@ -27,11 +27,10 @@ import {
   formatCompactCurrencyParts,
   formatCurrency,
   formatDate,
-  titleCase,
 } from '../../../shared/lib/format'
 import { stageDotClass } from '../../../shared/lib/stage-style'
 import { cn } from '../../../shared/lib/utils'
-import { DEAL_STAGES, type DashboardStats } from '../../../shared/types'
+import { DEAL_STAGES, DEAL_STAGE_LABELS, type DashboardStats } from '../../../shared/types'
 
 function greetingFor(date: Date): string {
   const hour = date.getHours()
@@ -232,7 +231,7 @@ export function DashboardPage() {
                   <div className="mb-1.5 flex items-center justify-between text-sm">
                     <span className="flex items-center gap-2 font-medium text-foreground">
                       <span className={cn('h-2 w-2 rounded-full', stageDotClass[stage])} />
-                      {titleCase(stage)}
+                      {DEAL_STAGE_LABELS[stage]}
                     </span>
                     <span className="tabular-nums text-muted-foreground">{count}</span>
                   </div>
