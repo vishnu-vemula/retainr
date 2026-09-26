@@ -19,10 +19,11 @@ const requiredKeys: Array<[string, string | undefined]> = [
   ['NEXT_PUBLIC_FIREBASE_APP_ID', firebaseConfig.appId],
 ]
 
-if (typeof window !== 'undefined' && requiredKeys.some(([, value]) => !value)) {
-  const missing = requiredKeys.filter(([, value]) => !value).map(([key]) => key)
+const missingFirebaseConfigKeys = requiredKeys.filter(([, value]) => !value).map(([key]) => key)
+
+if (typeof window !== 'undefined' && missingFirebaseConfigKeys.length > 0) {
   console.error(
-    `Firebase is not configured. Missing environment variables: ${missing.join(', ')}. ` +
+    `Firebase is not configured. Missing environment variables: ${missingFirebaseConfigKeys.join(', ')}. ` +
       'Copy .env.example to .env and fill in your Firebase project credentials.',
   )
 }
@@ -30,6 +31,9 @@ if (typeof window !== 'undefined' && requiredKeys.some(([, value]) => !value)) {
 let authInstance: Auth | undefined
 
 export function getFirebaseAuth(): Auth {
+  if (missingFirebaseConfigKeys.length > 0) {
+    throw new Error(`Firebase is not configured. Missing environment variables: ${missingFirebaseConfigKeys.join(', ')}`)
+  }
   const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig)
   authInstance ??= getAuth(app)
   return authInstance

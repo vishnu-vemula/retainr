@@ -1,0 +1,17 @@
+{
+  "/(auth)/login/page": "app/(auth)/login/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/(auth)/signup/page": "app/(auth)/signup/page.js",
+  "/(crm)/contacts/[contactId]/page": "app/(crm)/contacts/[contactId]/page.js",
+  "/(crm)/companies/[companyId]/page": "app/(crm)/companies/[companyId]/page.js",
+  "/(crm)/contacts/page": "app/(crm)/contacts/page.js",
+  "/(crm)/companies/page": "app/(crm)/companies/page.js",
+  "/(crm)/page": "app/(crm)/page.js",
+  "/(crm)/deals/[dealId]/page": "app/(crm)/deals/[dealId]/page.js",
+  "/(crm)/notifications/page": "app/(crm)/notifications/page.js",
+  "/(crm)/deals/page": "app/(crm)/deals/page.js",
+  "/(crm)/settings/products/page": "app/(crm)/settings/products/page.js",
+  "/(crm)/settings/tags/page": "app/(crm)/settings/tags/page.js",
+  "/(crm)/tasks/page": "app/(crm)/tasks/page.js",
+  "/(crm)/settings/users/page": "app/(crm)/settings/users/page.js"
+}
