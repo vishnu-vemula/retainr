@@ -2,11 +2,16 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Building2, KanbanSquare, Loader2, Search, UsersRound } from 'lucide-react'
 import { Input } from '../../../shared/components/ui/input'
+import { cn } from '../../../shared/lib/utils'
 import { useDebouncedValue } from '../../../shared/hooks/use-debounced-value'
 import { formatCurrency, titleCase } from '../../../shared/lib/format'
 import { useSearch } from '../hooks/use-search'
 
-export function GlobalSearch() {
+interface GlobalSearchProps {
+  className?: string
+}
+
+export function GlobalSearch({ className }: GlobalSearchProps) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -18,6 +23,15 @@ export function GlobalSearch() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        const input = inputRef.current
+        if (input && input.offsetParent !== null) {
+          event.preventDefault()
+          input.focus()
+          input.select()
+        }
+        return
+      }
       if (event.key === 'Escape') {
         setQuery('')
         setOpen(false)
@@ -47,14 +61,15 @@ export function GlobalSearch() {
   }
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-md">
+    <div ref={containerRef} className={cn('relative w-full', className)}>
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           ref={inputRef}
           type="search"
-          placeholder="Search contacts, companies, deals…"
-          className="pl-9"
+          placeholder="Search anything…"
+          aria-label="Search contacts, companies and deals"
+          className="rounded-full border-transparent bg-secondary/80 pl-10 pr-14 shadow-none hover:border-border focus-visible:bg-card [&::-webkit-search-cancel-button]:hidden"
           value={query}
           onChange={(event) => {
             setQuery(event.target.value)
@@ -64,9 +79,12 @@ export function GlobalSearch() {
             if (query.trim().length > 0) setOpen(true)
           }}
         />
+        <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 items-center gap-0.5 rounded-md border border-border bg-card px-1.5 py-0.5 font-sans text-[10px] font-medium text-muted-foreground sm:flex">
+          ⌘K
+        </kbd>
       </div>
       {open && debouncedQuery.length >= 1 ? (
-        <div className="absolute z-50 mt-2 max-h-96 w-full overflow-y-auto rounded-md border bg-popover p-1 shadow-md animate-fade-in-up">
+        <div className="absolute right-0 z-50 mt-2 max-h-[26rem] w-full min-w-[20rem] overflow-y-auto rounded-2xl border border-border/70 bg-popover p-1.5 shadow-lift animate-fade-in-up scrollbar-thin">
           {isFetching && !data ? (
             <div className="flex items-center gap-2 px-3 py-4 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -78,16 +96,18 @@ export function GlobalSearch() {
             <div className="space-y-3">
               {data && data.contacts.length > 0 ? (
                 <div>
-                  <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">Contacts</p>
+                  <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Contacts</p>
                   <ul>
                     {data.contacts.map((contact) => (
                       <li key={contact.id}>
                         <button
                           type="button"
-                          className="flex w-full cursor-pointer items-center gap-3 rounded-sm px-3 py-2 text-left text-sm hover:bg-accent"
+                          className="group flex w-full cursor-pointer items-center gap-3 rounded-xl px-2.5 py-2 text-left text-sm transition-colors hover:bg-accent focus-visible:bg-accent focus-visible:outline-none"
                           onClick={() => goTo(`/contacts/${contact.id}`)}
                         >
-                          <UsersRound className="h-4 w-4 shrink-0 text-muted-foreground/70" />
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                            <UsersRound className="h-4 w-4" />
+                          </span>
                           <span className="min-w-0 flex-1 truncate font-medium text-foreground">
                             {contact.name}
                           </span>
@@ -100,16 +120,18 @@ export function GlobalSearch() {
               ) : null}
               {data && data.companies.length > 0 ? (
                 <div>
-                  <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">Companies</p>
+                  <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Companies</p>
                   <ul>
                     {data.companies.map((company) => (
                       <li key={company.id}>
                         <button
                           type="button"
-                          className="flex w-full cursor-pointer items-center gap-3 rounded-sm px-3 py-2 text-left text-sm hover:bg-accent"
+                          className="group flex w-full cursor-pointer items-center gap-3 rounded-xl px-2.5 py-2 text-left text-sm transition-colors hover:bg-accent focus-visible:bg-accent focus-visible:outline-none"
                           onClick={() => goTo(`/companies/${company.id}`)}
                         >
-                          <Building2 className="h-4 w-4 shrink-0 text-muted-foreground/70" />
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                            <Building2 className="h-4 w-4" />
+                          </span>
                           <span className="min-w-0 flex-1 truncate font-medium text-foreground">
                             {company.name}
                           </span>
@@ -122,16 +144,18 @@ export function GlobalSearch() {
               ) : null}
               {data && data.deals.length > 0 ? (
                 <div>
-                  <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">Deals</p>
+                  <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Deals</p>
                   <ul>
                     {data.deals.map((deal) => (
                       <li key={deal.id}>
                         <button
                           type="button"
-                          className="flex w-full cursor-pointer items-center gap-3 rounded-sm px-3 py-2 text-left text-sm hover:bg-accent"
+                          className="group flex w-full cursor-pointer items-center gap-3 rounded-xl px-2.5 py-2 text-left text-sm transition-colors hover:bg-accent focus-visible:bg-accent focus-visible:outline-none"
                           onClick={() => goTo(`/deals/${deal.id}`)}
                         >
-                          <KanbanSquare className="h-4 w-4 shrink-0 text-muted-foreground/70" />
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                            <KanbanSquare className="h-4 w-4" />
+                          </span>
                           <span className="min-w-0 flex-1 truncate font-medium text-foreground">
                             {deal.title}
                           </span>

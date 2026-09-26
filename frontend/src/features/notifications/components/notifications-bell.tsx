@@ -33,25 +33,25 @@ export function NotificationsBell() {
       <DropdownMenuTrigger asChild>
         <Button
           type="button"
-          variant="ghost"
+          variant="outline"
           size="icon"
-          className="relative"
+          className="relative border-border/70 shadow-none data-[state=open]:border-primary/40 data-[state=open]:bg-accent"
           aria-label={`Notifications${unread > 0 ? ` (${unread} unread)` : ''}`}
         >
-          <Bell className="h-5 w-5" />
+          <Bell className="h-[18px] w-[18px]" />
           {unread > 0 ? (
             <Badge
-              variant="destructive"
-              className="absolute -right-0.5 -top-0.5 h-4 min-w-4 rounded-full px-1 text-[10px]"
+              variant="default"
+              className="absolute -right-1 -top-1 h-5 min-w-5 justify-center rounded-full px-1 text-[10px] font-semibold ring-2 ring-card"
             >
               {unread > 9 ? '9+' : unread}
             </Badge>
           ) : null}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80 max-h-96 overflow-auto">
-        <DropdownMenuLabel className="flex items-center justify-between px-4 py-3">
-          <span>Notifications</span>
+      <DropdownMenuContent align="end" sideOffset={10} className="max-h-[28rem] w-[22rem] max-w-[calc(100vw-1.5rem)] overflow-auto scrollbar-thin">
+        <DropdownMenuLabel className="flex items-center justify-between px-3 py-2.5">
+          <span className="font-display text-base">Notifications</span>
           {unread > 0 ? (
             <Button
               type="button"
@@ -70,7 +70,7 @@ export function NotificationsBell() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {latest.length === 0 ? (
-          <p className="px-4 py-6 text-center text-sm text-muted-foreground">You are all caught up.</p>
+          <p className="px-4 py-8 text-center text-sm text-muted-foreground">You are all caught up.</p>
         ) : (
           latest.map((notification) => {
             const Icon = typeIcons[notification.type]
@@ -78,15 +78,15 @@ export function NotificationsBell() {
             return (
               <DropdownMenuItem
                 key={notification.id}
-                className={clsx('items-start gap-3 px-4 py-3', isUnread && 'bg-primary/5')}
+                className={clsx('items-start gap-3 px-3 py-3', isUnread && 'bg-accent/50')}
               >
                 <span
                   className={clsx(
                     'flex h-8 w-8 shrink-0 items-center justify-center rounded-full',
-                    isUnread ? 'bg-primary/20' : 'bg-secondary',
+                    isUnread ? 'bg-primary text-primary-foreground' : 'bg-secondary',
                   )}
                 >
-                  <Icon className={clsx('h-4 w-4', isUnread ? 'text-primary' : 'text-muted-foreground')} />
+                  <Icon className={clsx('h-4 w-4', isUnread ? 'text-primary-foreground' : 'text-muted-foreground')} />
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className={clsx('truncate text-sm', isUnread ? 'font-semibold text-foreground' : 'text-foreground/80')}>
@@ -100,7 +100,7 @@ export function NotificationsBell() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="h-auto px-2 py-1 text-xs"
+                      className="h-auto px-2.5 py-1 text-xs"
                       disabled={markReadMutation.isPending}
                       onClick={(event) => {
                         event.stopPropagation()
@@ -117,7 +117,7 @@ export function NotificationsBell() {
         )}
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/notifications" className="w-full justify-center text-center text-sm font-medium text-primary">
+          <Link href="/notifications" className="w-full justify-center rounded-xl text-center text-sm font-medium text-primary">
             View all
           </Link>
         </DropdownMenuItem>
