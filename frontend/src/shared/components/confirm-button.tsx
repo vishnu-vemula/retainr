@@ -41,7 +41,7 @@ export function ConfirmButton({
           type="button"
           variant="outline"
           size="icon"
-          className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+          className="h-8 w-8 border-border/70 text-muted-foreground shadow-none hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
           onClick={handleTriggerClick}
           disabled={disabled}
           aria-label={label}

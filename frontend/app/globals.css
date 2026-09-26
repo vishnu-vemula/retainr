@@ -4,26 +4,37 @@
 
 @layer base {
   :root {
-    --background: 222 47% 98%;
-    --foreground: 225 39% 14%;
+    --background: 24 18% 96%;
+    --foreground: 12 20% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 47.4% 11.2%;
+    --card-foreground: 12 20% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 47.4% 11.2%;
-    --primary: 243 67% 55%;
+    --popover-foreground: 12 20% 10%;
+    --primary: 9 88% 52%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 225 36% 96%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 225 36% 96%;
-    --muted-foreground: 221 13% 43%;
-    --accent: 244 100% 97%;
-    --accent-foreground: 243 67% 45%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 225 26% 90%;
-    --input: 225 26% 88%;
-    --ring: 243 67% 55%;
-    --radius: 0.75rem;
+    --secondary: 20 18% 92.5%;
+    --secondary-foreground: 12 20% 10%;
+    --muted: 20 18% 93.5%;
+    --muted-foreground: 12 7% 40%;
+    --accent: 12 100% 96%;
+    --accent-foreground: 9 80% 40%;
+    --destructive: 352 76% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 20 16% 88%;
+    --input: 20 14% 84%;
+    --ring: 9 88% 52%;
+    --ink: 12 22% 9%;
+    --ink-foreground: 0 0% 100%;
+    --radius: 0.875rem;
+
+    --toastify-font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    --toastify-color-success: #059669;
+    --toastify-color-error: hsl(352 76% 45%);
+    --toastify-color-warning: #d97706;
+    --toastify-color-info: hsl(9 88% 52%);
+    --toastify-color-progress-light: linear-gradient(90deg, #fb6d4b, #f03919);
+    --toastify-toast-bd-radius: 16px;
+    --toastify-text-color-light: hsl(12 20% 10%);
   }
 }
 
@@ -31,19 +42,33 @@
   * {
     @apply border-border;
   }
+  html {
+    scroll-behavior: smooth;
+  }
   body {
-    @apply min-h-screen bg-background text-foreground antialiased;
-    background-image:
-      radial-gradient(circle at top left, hsl(243 67% 55% / 0.08), transparent 26rem),
-      radial-gradient(circle at right 22rem, hsl(192 85% 48% / 0.05), transparent 22rem);
+    @apply bg-background text-foreground antialiased;
+    background-image: radial-gradient(
+      1100px 420px at 50% -220px,
+      hsl(var(--primary) / 0.1),
+      transparent 70%
+    );
+    background-repeat: no-repeat;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  ::selection {
+    background: hsl(var(--primary) / 0.18);
+    color: hsl(var(--foreground));
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
   }
 }
 
 @layer components {
-  .auth-page {
-    background-image:
-      radial-gradient(circle at 16% 18%, hsl(243 67% 55% / 0.18), transparent 25rem),
-      radial-gradient(circle at 86% 82%, hsl(192 85% 48% / 0.13), transparent 23rem);
+  .Toastify__toast {
+    @apply border border-border/70 shadow-lift;
   }
 }
 
@@ -53,9 +78,20 @@
     height: 6px;
   }
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-slate-300;
+    @apply rounded-full bg-foreground/15;
   }
   .scrollbar-thin::-webkit-scrollbar-track {
     background: transparent;
+  }
+  .bg-hero {
+    background-color: #f03919;
+    background-image:
+      radial-gradient(90% 120% at 100% 0%, rgb(255 140 100 / 0.55), transparent 55%),
+      radial-gradient(70% 90% at 0% 100%, rgb(150 20 5 / 0.55), transparent 60%),
+      linear-gradient(135deg, #f5501f 0%, #e8340f 55%, #c9260b 100%);
+  }
+  .text-outline-white {
+    color: transparent;
+    -webkit-text-stroke: 1px rgb(255 255 255 / 0.22);
   }
 }

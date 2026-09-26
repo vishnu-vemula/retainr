@@ -8,18 +8,15 @@ A production-grade CRM built on a typed, feature-based stack: **contacts, compan
 
 ## Screenshots
 
-**Legacy UI (v1 task manager — new CRM screenshots coming after next deploy):**
-
-<details>
-<summary>View v1 screenshots</summary>
+Light, warm-neutral UI with a red-orange accent: floating pill navbar, display typography, soft rounded cards and a full site footer.
 
 | | |
 |---|---|
+| ![Dashboard](images/dashboard.png) | ![Deal pipeline](images/deals.png) |
+| ![Contacts](images/contacts.png) | ![Deal detail with quote builder](images/deal-detail.png) |
 | ![Login](images/login.png) | ![Signup](images/signup.png) |
-| ![Task Board](images/home.png) | ![Task Details](images/taskdetails.png) |
-| ![Edit Task](images/taskedit.png) | |
 
-</details>
+![Mobile — login, dashboard and navigation menu](images/mobile.png)
 
 ## Features
 
@@ -39,8 +36,6 @@ A production-grade CRM built on a typed, feature-based stack: **contacts, compan
 - **Production hygiene** — Helmet, CORS allow-list, rate limiting, compression, Pino structured logs, validation, error envelope, graceful shutdown
 
 ## Architecture
-
-![Architecture](images/architecture.svg)
 
 | Layer | Stack |
 |-------|-------|

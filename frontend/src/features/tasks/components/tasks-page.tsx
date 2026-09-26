@@ -70,6 +70,7 @@ export function TasksPage() {
   return (
     <div>
       <PageHeader
+        eyebrow="Follow-ups"
         title="Tasks"
         description="Stay on top of your follow-ups"
         action={

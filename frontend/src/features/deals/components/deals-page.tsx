@@ -11,7 +11,7 @@ export function DealsPage() {
 
   return (
     <div>
-      <PageHeader title="Deals" description="Drag deals between stages to move them through your pipeline" />
+      <PageHeader eyebrow="Pipeline" title="Deals" description="Drag deals between stages to move them through your pipeline" />
       <div className="mb-4">
         <div className="relative w-full max-w-xs">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

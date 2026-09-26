@@ -6,6 +6,7 @@ export type BadgeVariant = ContactStatus | DealStage | TaskStatus | TaskPriority
 
 type BadgeStyle =
   | 'default'
+  | 'brand'
   | 'secondary'
   | 'destructive'
   | 'outline'
@@ -22,7 +23,7 @@ const variantStyles: Record<string, BadgeStyle> = {
   CUSTOMER: 'success',
   CHURNED: 'danger',
   NEW: 'muted',
-  PROPOSAL: 'violet',
+  PROPOSAL: 'brand',
   NEGOTIATION: 'warning',
   WON: 'success',
   LOST: 'danger',
@@ -32,7 +33,7 @@ const variantStyles: Record<string, BadgeStyle> = {
   LOW: 'muted',
   MEDIUM: 'info',
   HIGH: 'warning',
-  URGENT: 'destructive',
+  URGENT: 'danger',
 }
 
 interface StatusBadgeProps {
@@ -42,6 +43,7 @@ interface StatusBadgeProps {
 export function StatusBadge({ variant }: StatusBadgeProps) {
   return (
     <Badge variant={variant ? variantStyles[variant] ?? 'muted' : 'muted'}>
+      <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" aria-hidden="true" />
       {variant ? titleCase(variant) : '—'}
     </Badge>
   )

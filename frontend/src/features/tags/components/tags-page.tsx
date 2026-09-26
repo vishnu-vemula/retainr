@@ -114,6 +114,7 @@ export function TagsPage() {
   return (
     <div>
       <PageHeader
+        eyebrow="Settings"
         title="Tags"
         description="Labels you can attach to contacts and deals"
         action={
