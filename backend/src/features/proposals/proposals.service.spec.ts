@@ -17,7 +17,8 @@ const snapshot: ProposalSnapshot = {
 function buildFixture() {
   let record = {
     id: 'p1', ownerId: 'u1', dealId: 'd1', status: 'CREATED', snapshot,
-    expiresAt: new Date(Date.now() + 7 * 86_400_000), selectedPackageId: null, selectedAddonIds: []
+    expiresAt: new Date(Date.now() + 7 * 86_400_000), selectedPackageId: null, selectedAddonIds: [],
+    viewedAt: null, respondedAt: null, createdAt: new Date(), updatedAt: new Date()
   } as ProposalRecord;
   const repo = {
     create: vi.fn().mockImplementation(async (_ownerId: string, _dealId: string, _hash: string, savedSnapshot: ProposalSnapshot) => {

@@ -27,7 +27,7 @@ Architecture laws referenced as **L1–L8** (see AGENTS.md). Conventions and fol
 1. Backend: schema (Zod) → service method → repo method → controller route → router. Static sub-routes (like `deals/reorder`) must be registered **before** `/:id` routes.
 2. Contract: response stays enveloped (`{ data }`); errors via `AppError` (never `res.status` in controllers).
 3. Frontend: type in `shared/types.ts` → `api/` function → `hooks/` wrapper (keys + invalidations) → component usage. One layer at a time.
-4. Update both `README.md` API table and the skill-9 doc sync if the surface changed.
+4. Update the `README.md` API table and `ARCHITECTURE.md` if the surface changed.
 5. **Verify:** unit test for the service path; typecheck + lint both workspaces; manual curl against dev server when env allows.
 
 ## 3. schema-change (Prisma)
@@ -67,8 +67,9 @@ Architecture laws referenced as **L1–L8** (see AGENTS.md). Conventions and fol
 
 - [ ] Laws L1–L8 hold — especially: no Prisma outside repositories/container, no `new` of services outside `container.ts`, no `process.env` outside `config/env.ts`, no fetch in components, no Zod-less request bodies.
 - [ ] Every new query path filters by `ownerId`; compound uniques preserved.
-- [ ] Router order: static routes before `/:id` (`deals/reorder`, `contacts/export`); auth guards present.
+- [ ] Router order: static routes before `/:id` (`deals/reorder`, `deals/templates`, `contacts/export`); auth guards present except the explicit public proposal capability routes.
 - [ ] Tag attachments go through `TagsService.assertAllOwned`; notifications use dedupe keys; mutations write audit rows.
+- [ ] Won-deal onboarding uses the task-creation port and remains idempotent; proposal choices are validated against immutable snapshots, and raw share tokens are never stored.
 - [ ] Frontend cache keys consistent (`['<entity>', params]`) and mutations invalidate themselves + `['dashboard']` when stats change.
 - [ ] `.env.example` updated for new vars; no secrets in the diff.
 - [ ] Typecheck + lint + tests pass in touched workspaces.

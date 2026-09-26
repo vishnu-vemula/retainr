@@ -20,7 +20,7 @@ export const dealFormSchema = z.object({
   serviceStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal('')),
   renewalDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal('')),
   renewalHealth: z.enum(['HEALTHY', 'AT_RISK', 'UNKNOWN']),
-  renewalProbability: z.union([z.coerce.number().int().min(0).max(100), z.literal('')]),
+  renewalProbability: z.union([z.literal(''), z.coerce.number().int().min(0).max(100)]),
   nextReviewDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal('')),
   contactId: z.string().optional().or(z.literal('')),
   companyId: z.string().optional().or(z.literal('')),

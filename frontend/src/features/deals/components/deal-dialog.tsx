@@ -88,6 +88,10 @@ function sameTagIds(a: string[], b: string[]): boolean {
   return a.length === b.length && a.every((id) => b.includes(id))
 }
 
+const stageProbability: Record<DealStage, number> = {
+  NEW: 10, QUALIFIED: 25, PROPOSAL: 50, NEGOTIATION: 75, WON: 100, LOST: 0,
+}
+
 export function DealDialog({ deal, defaultStage, onClose }: DealDialogProps) {
   const createMutation = useCreateDeal()
   const updateMutation = useUpdateDeal()
@@ -101,11 +105,12 @@ export function DealDialog({ deal, defaultStage, onClose }: DealDialogProps) {
     register,
     handleSubmit,
     control,
+    setValue,
     watch,
-    formState: { errors },
+    formState: { errors, dirtyFields },
   } = useForm<DealFormValues>({
     resolver: zodResolver(dealFormSchema),
-    values: deal ? toFormValues(deal) : { ...toFormValues(null), stage: defaultStage ?? 'NEW' },
+    values: deal ? toFormValues(deal) : { ...toFormValues(null), stage: defaultStage ?? 'NEW', probability: stageProbability[defaultStage ?? 'NEW'] },
   })
 
   const stage = watch('stage')
@@ -117,7 +122,7 @@ export function DealDialog({ deal, defaultStage, onClose }: DealDialogProps) {
       value: values.value,
       stage: values.stage,
       currency: values.currency,
-      probability: values.probability,
+      probability: dirtyFields.probability ? values.probability : undefined,
       source: values.source || null,
       nextStep: values.nextStep || undefined,
       lostReason: values.lostReason || undefined,
@@ -195,7 +200,10 @@ export function DealDialog({ deal, defaultStage, onClose }: DealDialogProps) {
               control={control}
               name="stage"
               render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
+                <Select value={field.value} onValueChange={(value) => {
+                  field.onChange(value)
+                  if (!dirtyFields.probability) setValue('probability', stageProbability[value as DealStage], { shouldDirty: false })
+                }}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

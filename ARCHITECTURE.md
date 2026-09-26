@@ -63,8 +63,10 @@ Rules:
 
 Side effects that span features are defined as interfaces in `common/utils` and injected like repositories:
 
-- `AuditLogger` (implemented by `AuditService`) — every mutation in contacts/companies/deals/tasks/activities/tags/products writes an audit row.
-- `NotificationDispatcher` (implemented by `NotificationsService`) — deals dispatch `DEAL_WON`; notifications sync overdue tasks lazily on `GET /notifications` (dedupe keys: `task-overdue:<id>`, `deal-won:<id>`).
+- `AuditLogger` (implemented by `AuditService`) — mutations in contacts/companies/deals/tasks/activities/tags/products/proposals write audit rows.
+- `NotificationDispatcher` (implemented by `NotificationsService`) — deals dispatch `DEAL_WON`; overdue tasks and renewal alerts sync lazily on dashboard/notifications reads.
+- `OnboardingTaskCreator` (implemented by `TasksService`) — won-deal transitions create the five owner-scoped onboarding handoffs through an idempotent repository insert.
+- `RenewalAlertSync` (implemented by `NotificationsService`) — dashboard reads trigger the same deduped renewal alert pass as notifications reads.
 - `TagsOwnershipChecker` (implemented by `TagsService`) — tag attach endpoints validate every tag belongs to the requester.
 
 Sanctioned Prisma aggregates (no repository): `DashboardService` (stats) and `SearchService`'s repository lives in its feature; both are owner-scoped.
@@ -99,15 +101,18 @@ User (id = Firebase UID, role)
  │               ├──< Activity (NOTE/CALL/EMAIL/MEETING; also on Deal/Company)
  │               └──< Tag (M2M; also on Deal)
  ├── Product ──< DealItem >── Deal
- └── Notification (TASK_OVERDUE / DEAL_WON, deduped by ownerId+dedupeKey)
+ ├── Deal ──< Proposal (immutable snapshot, hashed expiring share token)
+ └── Notification (task, deal-won, renewal and risk alerts; deduped by ownerId+dedupeKey)
 
 AuditLog (action × entity per owner: CREATE/UPDATE/DELETE/STAGE_CHANGE)
 ```
 
-- Enums: `Role`, `ContactStatus`, `ContactSource`, `DealStage` (NEW→…→WON/LOST), `DealSource`, `TaskStatus`, `TaskPriority`, `ActivityType`, `NotificationType`, `AuditAction`, `EntityType`.
+- Enums include `EngagementType`, `RenewalHealth`, `DealItemKind`, and `ProposalStatus`; existing `DealStage` values remain stable while the UI labels them Lead → Discovery → Scope sent → Client review → Won/Lost.
 - `Deal.position` orders cards inside a stage; `POST /deals` appends at `max+1`; `PATCH /deals/reorder` writes batch updates in a transaction.
-- **Stage business rules** (`DealsService.update`): stage change sets default probability (NEW 10 → NEGOTIATION 75, WON 100, LOST 0), stamps/clears `closedAt`, writes a `STAGE_CHANGE` audit row, and dispatches a deduped `DEAL_WON` notification on WON.
-- **Quote builder**: `DealItem` rows (product or free text) — any item mutation recalculates `deal.value = Σ(quantity × unitPrice)`.
+- **Stage business rules** (`DealsService.update`): stage change sets default probability (NEW 10 → NEGOTIATION 75, WON 100, LOST 0), stamps/clears `closedAt`, writes a `STAGE_CHANGE` audit row, and dispatches a deduped `DEAL_WON` notification and onboarding checklist on WON.
+- **Quote builder**: `DealItem` rows (product or free text) carry `BASE`, `PACKAGE`, or `ADD_ON`; item mutations recalculate `deal.value`. Three reusable templates append starter quote items.
+- **Proposals**: creation snapshots current quote items and returns a 256-bit share token once. Only its SHA-256 hash is stored. Public read marks viewed; an accepted response validates package/add-on choices, records the decision, sets the deal value to selected items, and moves it to WON. Links expire after 1–90 days. Public routes are capability-token exceptions to the owner query rule; owner list/create remain owner-scoped.
+- **Renewals**: the dashboard aggregate scopes won retainers by owner, reports 30/60/90-day windows, inactive accounts, overdue onboarding, MRR and weighted forecast by currency. Notifications sync renewal-due and at-risk alerts on read; there is no scheduler.
 - **Activities**: create/update touches `contact.lastActivityAt` so lists can show recency.
 - Relation deletes: owner cascade (`User`), `SetNull` for contact/company links (history survives).
 
@@ -121,8 +126,10 @@ app/                        # Next.js App Router — views only (.tsx)
 ├── providers.tsx           # 'use client' composition of client providers
 ├── (site)/                 # public website (server components + metadata): /, /features, /pricing, /security, /about, /contact
 ├── (auth)/login|signup/    # public routes
+├── proposal/[token]/       # public, read-only proposal and decision view
 └── (crm)/                  # auth-guarded route group (layout checks Firebase user)
     ├── dashboard/page.tsx  # /dashboard
+    ├── renewals/page.tsx   # /renewals
     ├── contacts/[contactId]/page.tsx …  # thin 'use client' wrappers importing feature components
 src/features/<name>/
 ├── api/<name>-api.ts     # pure async functions, apiFetch, ZERO React imports (.ts)
@@ -178,4 +185,4 @@ Declared and validated in `backend/src/config/env.ts`; mirrored in `.env.example
 
 ## 6. Future work (proposals, not commitments)
 
-Playwright smoke tests, BFF/proxy deployment option, activity timeline, CSV import/export.
+After solo-agency validation: workspace ownership/membership migration, Playwright smoke tests, BFF/proxy deployment option, and optional payment/e-signature/calendar/email integrations.
