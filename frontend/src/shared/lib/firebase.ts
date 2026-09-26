@@ -21,13 +21,6 @@ const requiredKeys: Array<[string, string | undefined]> = [
 
 const missingFirebaseConfigKeys = requiredKeys.filter(([, value]) => !value).map(([key]) => key)
 
-if (typeof window !== 'undefined' && missingFirebaseConfigKeys.length > 0) {
-  console.error(
-    `Firebase is not configured. Missing environment variables: ${missingFirebaseConfigKeys.join(', ')}. ` +
-      'Copy .env.example to .env and fill in your Firebase project credentials.',
-  )
-}
-
 let authInstance: Auth | undefined
 
 export function getFirebaseAuth(): Auth {
