@@ -1,6 +1,6 @@
 import { applicationDefault, cert, getApps, initializeApp, type ServiceAccount } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
-import { env } from '../config/env';
+import { env, hasApplicationDefaultCredentials } from '../config/env';
 
 function readServiceAccount(): ServiceAccount | undefined {
   if (env.FIREBASE_SERVICE_ACCOUNT_KEY) {
@@ -17,14 +17,13 @@ function readServiceAccount(): ServiceAccount | undefined {
 }
 
 const account = readServiceAccount();
-const hasAcd = Boolean(process.env.GOOGLE_APPLICATION_CREDENTIALS);
 
-export const hasFullFirebaseCredentials = Boolean(account || hasAcd);
+export const hasFullFirebaseCredentials = Boolean(account || hasApplicationDefaultCredentials);
 
 if (getApps().length === 0) {
   if (account) {
     initializeApp({ credential: cert(account) });
-  } else if (hasAcd) {
+  } else if (hasApplicationDefaultCredentials) {
     initializeApp({ credential: applicationDefault() });
   } else if (env.FIREBASE_PROJECT_ID) {
     initializeApp({ projectId: env.FIREBASE_PROJECT_ID });
