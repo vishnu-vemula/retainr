@@ -72,7 +72,7 @@ Every record is scoped by `ownerId` — users only ever see their own CRM data. 
 
 ### Prerequisites
 
-- Node.js 18.18+
+- Node.js 22+
 - PostgreSQL (local, Docker, or free tier on [Neon](https://neon.tech) / [Supabase](https://supabase.com))
 - A Firebase project (free)
 
