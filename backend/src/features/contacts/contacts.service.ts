@@ -1,11 +1,8 @@
 import { AppError } from '../../common/utils/app-error';
 import type { AuditLogger } from '../../common/utils/audit-logger';
+import type { TagsOwnershipChecker } from '../../common/utils/tags-ownership-checker';
 import type { ContactDetail, ContactWithCompany, IContactsRepository } from './contacts.repository';
 import type { CreateContactInput, ListContactsQuery, SetContactTagsInput, UpdateContactInput } from './contacts.schemas';
-
-export interface TagsOwnershipChecker {
-  assertAllOwned(tagIds: string[], ownerId: string): Promise<void>;
-}
 
 export class ContactsService {
   constructor(

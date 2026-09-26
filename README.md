@@ -36,7 +36,7 @@ A light, warm-neutral UI with a red-orange accent. The public website uses big d
 - **Agency pipeline** — Lead → Discovery → Scope sent → Client review → Won/Lost. Stored enum values stay `NEW`, `QUALIFIED`, `PROPOSAL`, `NEGOTIATION`, `WON`, `LOST` for existing data.
 - **Engagements** — project or retainer, one-time and monthly values, service/renewal/review dates, renewal health and probability, loss and churn reasons
 - **Quote builder** — product catalog, base/package/add-on line items, and paid ads, SEO, and website/maintenance templates. Template prices are examples in the deal's currency; review them before sharing.
-- **Shareable proposals** — immutable quote snapshots, expiring random links, read-only client view, package/add-on selection, viewed/accepted/declined tracking. Acceptance marks the deal won at the selected quote total.
+- **Shareable proposals** — immutable quote snapshots, expiring random links, client package/add-on selection, and viewed/accepted/declined tracking. Acceptance marks the engagement won at the selected quote total; it is not an electronic signature or payment.
 - **Activities** — notes, calls, emails, meetings on a timeline per contact/deal; contacts track last-touch time
 - **Tags** — colored tags on contacts and deals, managed in Settings
 - **Tasks** — activities linked to contacts/deals, priorities, due dates, overdue tracking, quick-complete; won deals create five idempotent onboarding handoffs
@@ -50,6 +50,12 @@ A light, warm-neutral UI with a red-orange accent. The public website uses big d
 - **Account** — profile, role, sign-in method, password reset and sign-out
 - **User management** — ADMINs can list users and change roles
 - **Production hygiene** — Helmet, CORS allow-list, rate limiting, compression, Pino structured logs, validation, error envelope, graceful shutdown
+
+## V1 measurements and next phases
+
+The owner-scoped dashboard reports lead-to-accepted-proposal time, missed renewals, onboarding completion time, and monthly recurring revenue by currency. It also shows whether the current owner was active in the past seven days; pilot operators can count distinct active owners from audit events over the same period. Proposal acceptance is the v1 conversion event because electronic signatures are outside this release.
+
+The 5–10 agency pilot is a product-validation step after release. Shared workspaces and team permissions follow that pilot as a separate ownership migration. AI-assisted scope and follow-up drafts, payments, e-signature, calendar/email sync, and a client portal remain optional later additions.
 
 ## Architecture
 

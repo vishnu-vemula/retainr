@@ -16,6 +16,7 @@ export interface IProposalsRepository {
   findByTokenHash(tokenHash: string): Promise<ProposalRecord | null>;
   markViewed(tokenHash: string, now: Date): Promise<boolean>;
   respond(tokenHash: string, now: Date, decision: 'ACCEPTED' | 'DECLINED', packageId: string | null, addonIds: string[]): Promise<boolean>;
+  resetFailedAcceptance(tokenHash: string, respondedAt: Date, priorStatus: 'CREATED' | 'VIEWED'): Promise<void>;
 }
 
 export class ProposalsRepository implements IProposalsRepository {
@@ -55,5 +56,12 @@ export class ProposalsRepository implements IProposalsRepository {
       data: { status: decision, respondedAt: now, selectedPackageId: packageId, selectedAddonIds: addonIds }
     });
     return result.count === 1;
+  }
+
+  async resetFailedAcceptance(tokenHash: string, respondedAt: Date, priorStatus: 'CREATED' | 'VIEWED'): Promise<void> {
+    await this.prisma.proposal.updateMany({
+      where: { tokenHash, status: 'ACCEPTED', respondedAt },
+      data: { status: priorStatus, respondedAt: null, selectedPackageId: null, selectedAddonIds: [] }
+    });
   }
 }

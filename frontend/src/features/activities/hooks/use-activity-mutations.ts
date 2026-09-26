@@ -14,6 +14,7 @@ function useInvalidateActivities() {
     void queryClient.invalidateQueries({ queryKey: ['contact'] })
     void queryClient.invalidateQueries({ queryKey: ['deals'] })
     void queryClient.invalidateQueries({ queryKey: ['deal'] })
+    void queryClient.invalidateQueries({ queryKey: ['dashboard'] })
   }
 }
 

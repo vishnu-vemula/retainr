@@ -533,7 +533,7 @@ export const milestones = [
 export const stack = ['Next.js', 'React', 'TypeScript', 'Express', 'Prisma', 'PostgreSQL', 'Firebase Auth', 'React Query']
 
 export const productFacts = [
-  { value: '1', label: 'workspace from lead to renewal' },
+  { value: '1', label: 'flow from lead to renewal' },
   { value: '6', label: 'pipeline stages, drag-and-drop' },
   { value: '4', label: 'activity types on every timeline' },
   { value: '100%', label: 'of changes written to the audit trail' },

@@ -3,7 +3,7 @@ import { AppError } from '../../common/utils/app-error';
 import type { AuditLogger } from '../../common/utils/audit-logger';
 import type { NotificationDispatcher } from '../../common/utils/notification-dispatcher';
 import type { OnboardingTaskCreator } from '../../common/utils/onboarding-task-creator';
-import type { TagsOwnershipChecker } from '../contacts/contacts.service';
+import type { TagsOwnershipChecker } from '../../common/utils/tags-ownership-checker';
 import { DEAL_TEMPLATES, type DealTemplateId } from './deal-templates';
 import type {
   DealDetail,
@@ -101,8 +101,10 @@ export class DealsService {
     if (stageChanged && nextStage !== undefined && input.probability === undefined) {
       patch.probability = DEFAULT_PROBABILITY[nextStage];
     }
-    if (stageChanged && (nextStage === 'WON' || nextStage === 'LOST')) {
-      patch.lostReason = input.lostReason ?? existing.lostReason;
+    if (stageChanged && nextStage === 'WON') {
+      patch.lostReason = null;
+    } else if (stageChanged && nextStage === 'LOST' && input.lostReason === undefined) {
+      patch.lostReason = existing.lostReason;
     }
     const updated = await this.repo.update(id, ownerId, patch);
     await this.audit.log(ownerId, 'UPDATE', 'DEAL', id, `Updated engagement "${updated.title}"`);
@@ -114,6 +116,7 @@ export class DealsService {
       }
     } else if (nextStage === 'WON') {
       await this.onboarding.createForWonDeal(ownerId, updated.id, updated.contactId);
+      await this.notifyWon(ownerId, updated);
     }
     return updated;
   }

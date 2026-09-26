@@ -1,4 +1,4 @@
-import type { ContactStatus, DealStage } from '@prisma/client';
+import type { ContactStatus, DealStage, TaskStatus } from '@prisma/client';
 import type { PrismaService } from '../../database/prisma';
 
 const OPEN_STAGES: DealStage[] = ['NEW', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION'];
@@ -22,6 +22,14 @@ function lastMonthKeys(count: number): string[] {
     keys.push(monthKey(date));
   }
   return keys;
+}
+
+export function overdueOnboardingDealIds(tasks: ReadonlyArray<{ dealId: string | null; status: TaskStatus; dueDate: Date | null }>, now: Date): Set<string> {
+  const ids = new Set<string>();
+  for (const task of tasks) {
+    if (task.dealId && task.status !== 'DONE' && task.dueDate && task.dueDate < now) ids.add(task.dealId);
+  }
+  return ids;
 }
 
 export interface DashboardStats {
@@ -137,7 +145,7 @@ export class DashboardService {
         select: {
           id: true, title: true, currency: true, monthlyRecurringValue: true, renewalDate: true,
           renewalHealth: true, renewalProbability: true, companyId: true, contactId: true,
-          closedAt: true, serviceStartDate: true, createdAt: true,
+          createdAt: true,
           company: { select: { name: true } }
         }
       }),
@@ -149,7 +157,7 @@ export class DashboardService {
       this.prisma.task.count({ where: { ownerId, onboardingKey: { not: null }, deal: { ownerId, stage: 'WON' }, status: { not: 'DONE' }, dueDate: { lt: now } } }),
       this.prisma.task.findMany({
         where: { ownerId, onboardingKey: { not: null }, deal: { ownerId, stage: 'WON' } },
-        select: { dealId: true, status: true, completedAt: true, deal: { select: { closedAt: true } } }
+        select: { dealId: true, status: true, dueDate: true, completedAt: true, deal: { select: { closedAt: true } } }
       }),
       this.prisma.proposal.findMany({
         where: { ownerId, status: 'ACCEPTED', respondedAt: { not: null } },
@@ -169,10 +177,10 @@ export class DashboardService {
     const latestDeal = new Map(dealActivity.map((row) => [row.dealId, row._max.occurredAt]));
     const latestCompany = new Map(companyActivity.map((row) => [row.companyId, row._max.occurredAt]));
     const latestContact = new Map(contactActivity.map((row) => [row.contactId, row._max.occurredAt]));
-    const overdueDealIds = new Set(onboardingTasks.filter((task) => task.status !== 'DONE' && task.dealId).map((task) => task.dealId));
+    const overdueDealIds = overdueOnboardingDealIds(onboardingTasks, now);
     const renewalItems = retainers.map((deal) => {
       const last = Math.max(
-        deal.createdAt.getTime(), deal.closedAt?.getTime() ?? 0, deal.serviceStartDate?.getTime() ?? 0,
+        deal.createdAt.getTime(),
         latestDeal.get(deal.id)?.getTime() ?? 0,
         latestCompany.get(deal.companyId)?.getTime() ?? 0,
         latestContact.get(deal.contactId)?.getTime() ?? 0

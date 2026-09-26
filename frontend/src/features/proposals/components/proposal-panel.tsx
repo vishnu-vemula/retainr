@@ -11,8 +11,12 @@ export function ProposalPanel({ dealId, hasItems }: { dealId: string; hasItems: 
   const [shareUrl, setShareUrl] = useState<string | null>(null)
 
   const createLink = async () => {
-    const result = await create.mutateAsync()
-    setShareUrl(`${window.location.origin}/proposal/${result.shareToken}`)
+    try {
+      const result = await create.mutateAsync()
+      setShareUrl(`${window.location.origin}/proposal/${result.shareToken}`)
+    } catch {
+      setShareUrl(null)
+    }
   }
 
   const copyLink = async () => {

@@ -18,9 +18,9 @@ export interface DealInput {
   currency?: string
   probability?: number
   source?: DealSource | null
-  nextStep?: string
-  lostReason?: string
-  churnReason?: string
+  nextStep?: string | null
+  lostReason?: string | null
+  churnReason?: string | null
   engagementType?: EngagementType
   oneTimeValue?: number
   monthlyRecurringValue?: number
@@ -32,7 +32,7 @@ export interface DealInput {
   contactId?: string | null
   companyId?: string | null
   expectedCloseDate?: string | null
-  notes?: string
+  notes?: string | null
 }
 
 export interface DealItemInput {

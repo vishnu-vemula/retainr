@@ -1,4 +1,4 @@
-import { apiFetch, ApiError } from '../../../shared/lib/api-client'
+import { apiFetch, API_BASE_URL, ApiError } from '../../../shared/lib/api-client'
 import type { Proposal, PublicProposal } from '../../../shared/types'
 
 export async function listProposals(dealId: string): Promise<Proposal[]> {
@@ -19,7 +19,7 @@ async function publicFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers)
   headers.set('Accept', 'application/json')
   if (init?.body) headers.set('Content-Type', 'application/json')
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}${path}`, { ...init, headers, cache: 'no-store' })
+  const response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers, cache: 'no-store' })
   const body = await response.json() as { data?: T; error?: { code: string; message: string } }
   if (!response.ok) throw new ApiError(response.status, body.error?.code ?? 'UNKNOWN', body.error?.message ?? 'Request failed')
   if (body.data === undefined) throw new Error('Unexpected empty proposal response')

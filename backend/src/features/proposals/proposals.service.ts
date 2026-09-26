@@ -107,7 +107,6 @@ export class ProposalsService {
     }
     if (proposal.status === 'ACCEPTED' && input.decision === 'ACCEPTED' && proposal.selectedPackageId === packageId &&
       JSON.stringify(proposal.selectedAddonIds) === JSON.stringify(addonIds)) {
-      await this.acceptance.markWon(proposal.ownerId, proposal.dealId, this.selectedTotal(snapshot, packageId, addonIds));
       return this.toPublic(proposal);
     }
     if (proposal.status === 'ACCEPTED' || proposal.status === 'DECLINED') {
@@ -117,8 +116,17 @@ export class ProposalsService {
     if (!changed) throw new AppError(409, 'PROPOSAL_DECIDED', 'This proposal has already been answered');
     const updated = await this.repo.findByTokenHash(tokenHash);
     if (!updated) throw AppError.notFound('Proposal');
-    await this.audit.log(updated.ownerId, 'UPDATE', 'PROPOSAL', updated.id, `Client ${input.decision.toLowerCase()} proposal`);
-    if (input.decision === 'ACCEPTED') await this.acceptance.markWon(updated.ownerId, updated.dealId, this.selectedTotal(snapshot, packageId, addonIds));
+    if (input.decision === 'ACCEPTED') {
+      try {
+        await this.acceptance.markWon(updated.ownerId, updated.dealId, this.selectedTotal(snapshot, packageId, addonIds));
+        await this.audit.log(updated.ownerId, 'UPDATE', 'PROPOSAL', updated.id, 'Client accepted proposal');
+      } catch (error) {
+        await this.repo.resetFailedAcceptance(tokenHash, now, proposal.status === 'VIEWED' ? 'VIEWED' : 'CREATED');
+        throw error;
+      }
+    } else {
+      await this.audit.log(updated.ownerId, 'UPDATE', 'PROPOSAL', updated.id, 'Client declined proposal');
+    }
     return this.toPublic(updated);
   }
 

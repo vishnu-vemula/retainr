@@ -290,7 +290,7 @@ function HowItWorks() {
 }
 
 const moduleCards = [
-  { title: 'Deal pipeline', tag: 'Pipeline', icon: KanbanSquare, href: '/features#pipeline', dark: true },
+  { title: 'Agency pipeline', tag: 'Pipeline', icon: KanbanSquare, href: '/features#pipeline', dark: true },
   { title: 'Quote builder', tag: 'Quotes', icon: Receipt, href: '/features#quotes' },
   { title: 'Follow-ups', tag: 'Tasks', icon: ListChecks, href: '/features#tasks' },
   { title: 'Client timeline', tag: 'Activity', icon: MessagesSquare, href: '/features#timeline' },

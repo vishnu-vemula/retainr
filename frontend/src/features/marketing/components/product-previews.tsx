@@ -47,17 +47,17 @@ export function DashboardPreview({ className }: { className?: string }) {
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/75">Open pipeline value</p>
           <div className="mt-1 flex items-end justify-between gap-3">
             <p className="text-4xl font-light tracking-[-0.05em]">
-              $399.9<span className="text-brand-950/60">K</span>
+              $39.9<span className="text-brand-950/60">K</span>
             </p>
             <span className="mb-1 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-medium ring-1 ring-inset ring-white/20">
-              7 open deals
+              7 open engagements
             </span>
           </div>
         </div>
         <div className="grid grid-cols-3 gap-2">
           {[
             ['Contacts', '128'],
-            ['Won revenue', '$111.5K'],
+            ['Won revenue', '$11.5K'],
             ['Open tasks', '9'],
           ].map(([label, value]) => (
             <div key={label} className="rounded-xl border border-border/70 bg-card p-2.5">
@@ -87,10 +87,10 @@ export function DashboardPreview({ className }: { className?: string }) {
 }
 
 const pipelineColumns = [
-  { name: 'Qualified', dot: 'bg-sky-500', cards: [['Robotics pilot', '$86,000', 30], ['Support renewal', '$18,400', 30]] },
-  { name: 'Proposal', dot: 'bg-brand-400', cards: [['Solar monitoring', '$124,000', 50], ['Brand retainer', '$27,000', 50]] },
-  { name: 'Negotiation', dot: 'bg-amber-500', cards: [['Clinic scheduling', '$64,000', 75]] },
-  { name: 'Won', dot: 'bg-emerald-500', cards: [['Analytics add-on', '$39,500', 100]] },
+  { name: 'Discovery', dot: 'bg-sky-500', cards: [['Helix paid ads', '$4,200', 30], ['Northwind SEO', '$2,800', 30]] },
+  { name: 'Scope sent', dot: 'bg-brand-400', cards: [['Cobalt campaign', '$3,600', 50], ['Bluepeak website', '$8,500', 50]] },
+  { name: 'Client review', dot: 'bg-amber-500', cards: [['Lumen growth retainer', '$5,400', 75]] },
+  { name: 'Won', dot: 'bg-emerald-500', cards: [['Helix SEO retainer', '$2,400', 100]] },
 ] as const
 
 export function PipelinePreview({ className, compact = false }: { className?: string; compact?: boolean }) {
@@ -167,15 +167,15 @@ function ContactsPreview() {
 
 function QuotePreview() {
   const items = [
-    ['Platform seat (annual)', '200 × $192', '$38,400'],
-    ['Premium support', '1 × $4,800', '$4,800'],
-    ['Onboarding package', '6 × $3,500', '$21,000'],
+    ['Campaign strategy and setup', '1 × $1,200', '$1,200'],
+    ['Paid ads management', '1 × $1,800', '$1,800'],
+    ['Creative testing', '1 × $600', '$600'],
   ]
   return (
     <div className="overflow-hidden rounded-2xl border border-border/70 bg-card">
       <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
         <p className="text-[12px] font-semibold">Line items</p>
-        <MiniBadge tone="brand">Negotiation</MiniBadge>
+        <MiniBadge tone="brand">Scope sent</MiniBadge>
       </div>
       <ul className="divide-y divide-border/60">
         {items.map(([name, qty, total]) => (
@@ -187,8 +187,8 @@ function QuotePreview() {
         ))}
       </ul>
       <div className="flex items-center justify-between bg-secondary/60 px-4 py-3">
-        <p className="text-[12px] font-semibold">Deal value</p>
-        <p className="text-lg font-semibold tracking-tight text-primary">$64,200</p>
+        <p className="text-[12px] font-semibold">Scope total</p>
+        <p className="text-lg font-semibold tracking-tight text-primary">$3,600</p>
       </div>
     </div>
   )
@@ -196,10 +196,10 @@ function QuotePreview() {
 
 function TasksPreview() {
   const tasks = [
-    ['Send revised proposal to Helix', 'High', 'amber', 'Overdue', true, false],
-    ['Prep demo for Lumen Health', 'Urgent', 'rose', 'Tomorrow', false, false],
-    ['Follow up on renewal pricing', 'Medium', 'sky', 'Tue', false, false],
-    ['Share case study with Northwind', 'Medium', 'sky', 'Done', false, true],
+    ['Collect campaign assets from Helix', 'High', 'amber', 'Overdue', true, false],
+    ['Schedule Lumen kickoff', 'Urgent', 'rose', 'Tomorrow', false, false],
+    ['Review Northwind renewal', 'Medium', 'sky', 'Tue', false, false],
+    ['Confirm Cobalt scope', 'Medium', 'sky', 'Done', false, true],
   ] as const
   return (
     <div className="space-y-2">
@@ -229,9 +229,9 @@ function TasksPreview() {
 function TimelinePreview() {
   const entries = [
     [Phone, 'Discovery call', 'Call · 30 min', '1d ago'],
-    [Mail, 'Sent pricing overview', 'Email', '3d ago'],
-    [Calendar, 'Onsite workshop', 'Meeting · 90 min', '7d ago'],
-    [FileText, 'Decision makers mapped', 'Note', '9d ago'],
+    [Mail, 'Sent campaign scope', 'Email', '3d ago'],
+    [Calendar, 'Client kickoff', 'Meeting · 90 min', '7d ago'],
+    [FileText, 'Assets and access mapped', 'Note', '9d ago'],
   ] as const
   return (
     <ol className="relative space-y-4 rounded-2xl border border-border/70 bg-card p-4 before:absolute before:bottom-8 before:left-[2.1rem] before:top-8 before:w-px before:bg-border">
@@ -252,8 +252,8 @@ function TimelinePreview() {
 }
 
 const alerts: { icon: LucideIcon; title: string; when: string }[] = [
-  { icon: AlarmClock, title: 'Task overdue: Send revised proposal', when: '2h ago' },
-  { icon: Trophy, title: 'Deal won: Enterprise analytics add-on', when: '1d ago' },
+  { icon: AlarmClock, title: 'Task overdue: Collect campaign assets', when: '2h ago' },
+  { icon: Trophy, title: 'Engagement won: Helix SEO retainer', when: '1d ago' },
 ]
 
 function AlertsPreview() {
@@ -279,15 +279,15 @@ function AlertsPreview() {
         <ul className="mt-3 space-y-2 text-[11px]">
           <li className="flex items-center gap-2">
             <MiniBadge tone="brand">Stage change</MiniBadge>
-            <span className="truncate text-muted-foreground">Proposal → Negotiation</span>
+            <span className="truncate text-muted-foreground">Scope sent → Client review</span>
           </li>
           <li className="flex items-center gap-2">
             <MiniBadge tone="sky">Update</MiniBadge>
-            <span className="truncate text-muted-foreground">Value set to $64,000</span>
+            <span className="truncate text-muted-foreground">Value set to $3,600</span>
           </li>
           <li className="flex items-center gap-2">
             <MiniBadge tone="emerald">Create</MiniBadge>
-            <span className="truncate text-muted-foreground">Deal created</span>
+            <span className="truncate text-muted-foreground">Engagement created</span>
           </li>
         </ul>
       </div>
@@ -298,7 +298,7 @@ function AlertsPreview() {
 const searchResults: { group: string; icon: LucideIcon; title: string; meta: string }[] = [
   { group: 'Contacts', icon: UsersRound, title: 'Jonas Weber', meta: 'jonas@helix.ai' },
   { group: 'Companies', icon: Building2, title: 'Helix Robotics', meta: 'helix.ai' },
-  { group: 'Deals', icon: Trophy, title: 'Robotics pilot program', meta: 'Qualified · $86,000' },
+  { group: 'Engagements', icon: Trophy, title: 'Helix paid ads retainer', meta: 'Discovery · $4,200' },
 ]
 
 export function SearchPreview({ className }: { className?: string }) {

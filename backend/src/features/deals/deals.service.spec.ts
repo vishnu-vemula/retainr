@@ -133,6 +133,25 @@ describe('DealsService', () => {
     expect(deps.audit.log).not.toHaveBeenCalledWith('u1', 'STAGE_CHANGE', 'DEAL', 'd1', expect.anything());
   });
 
+  it('restores deduped won side effects when a won deal is updated again', async () => {
+    const won = { id: 'd1', ownerId: 'u1', stage: 'WON', title: 'Won deal' } as DealWithRelations;
+    const repo = buildFakeRepo({ findByIdAndOwner: vi.fn().mockResolvedValue(won) });
+    const deps = buildDeps();
+    const service = new DealsService(repo, deps.audit, deps.notifications, deps.tags, deps.onboarding);
+    await service.update('u1', 'd1', { stage: 'WON', value: 1200 });
+    expect(deps.onboarding.createForWonDeal).toHaveBeenCalledOnce();
+    expect(deps.notifications.dispatch).toHaveBeenCalledWith('u1', expect.objectContaining({ dedupeKey: 'deal-won:d1' }));
+  });
+
+  it('clears a lost reason when a deal moves to won', async () => {
+    const lost = { id: 'd1', ownerId: 'u1', stage: 'LOST', title: 'Lost deal', lostReason: 'Budget' } as DealWithRelations;
+    const repo = buildFakeRepo({ findByIdAndOwner: vi.fn().mockResolvedValue(lost) });
+    const deps = buildDeps();
+    const service = new DealsService(repo, deps.audit, deps.notifications, deps.tags, deps.onboarding);
+    await service.update('u1', 'd1', { stage: 'WON' });
+    expect(repo.update).toHaveBeenCalledWith('d1', 'u1', expect.objectContaining({ lostReason: null }));
+  });
+
   it('rejects reorder when a deal is not owned by the requester', async () => {
     const repo = buildFakeRepo({ findByIdAndOwner: vi.fn().mockResolvedValue(null) });
     const deps = buildDeps();

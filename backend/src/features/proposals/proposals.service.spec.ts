@@ -28,6 +28,9 @@ function buildFixture() {
     list: vi.fn().mockResolvedValue([record]),
     findByTokenHash: vi.fn().mockImplementation(async () => record),
     markViewed: vi.fn().mockResolvedValue(true),
+    resetFailedAcceptance: vi.fn().mockImplementation(async () => {
+      record = { ...record, status: 'VIEWED', selectedPackageId: null, selectedAddonIds: [], respondedAt: null };
+    }),
     respond: vi.fn().mockImplementation(async (_hash: string, _now: Date, decision: 'ACCEPTED' | 'DECLINED', selectedPackageId: string | null, selectedAddonIds: string[]) => {
       record = { ...record, status: decision, selectedPackageId, selectedAddonIds };
       return true;
@@ -74,6 +77,24 @@ describe('ProposalsService', () => {
     expect(result.status).toBe('ACCEPTED');
     expect(acceptance.markWon).toHaveBeenCalledWith('u1', 'd1', 3400);
     expect(audit.log).toHaveBeenCalledWith('u1', 'UPDATE', 'PROPOSAL', 'p1', 'Client accepted proposal');
+  });
+
+  it('does not win a deal again when an accepted response is replayed', async () => {
+    const { service, acceptance, setRecord } = buildFixture();
+    setRecord({ status: 'ACCEPTED', selectedPackageId: 'package-a', selectedAddonIds: [] });
+    await service.respond('token', { decision: 'ACCEPTED', selectedPackageId: 'package-a', selectedAddonIds: [] });
+    expect(acceptance.markWon).not.toHaveBeenCalled();
+  });
+
+  it('restores a proposal for retry if applying an acceptance fails', async () => {
+    const { service, acceptance, repo } = buildFixture();
+    acceptance.markWon.mockRejectedValueOnce(new Error('Deal update failed'));
+    await expect(service.respond('token', { decision: 'ACCEPTED', selectedPackageId: 'package-a', selectedAddonIds: [] }))
+      .rejects.toThrow('Deal update failed');
+    expect(repo.resetFailedAcceptance).toHaveBeenCalledOnce();
+    await expect(service.respond('token', { decision: 'ACCEPTED', selectedPackageId: 'package-a', selectedAddonIds: [] }))
+      .resolves.toMatchObject({ status: 'ACCEPTED' });
+    expect(acceptance.markWon).toHaveBeenCalledTimes(2);
   });
 
   it('does not allow an expired proposal to be viewed or answered', async () => {

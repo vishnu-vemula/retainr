@@ -123,9 +123,9 @@ export function DealDialog({ deal, defaultStage, onClose }: DealDialogProps) {
       currency: values.currency,
       probability: dirtyFields.probability ? values.probability : undefined,
       source: values.source || null,
-      nextStep: values.nextStep || undefined,
-      lostReason: values.lostReason || undefined,
-      churnReason: values.churnReason || undefined,
+      nextStep: values.nextStep || null,
+      lostReason: values.lostReason || null,
+      churnReason: values.churnReason || null,
       engagementType: values.engagementType,
       oneTimeValue: values.oneTimeValue,
       monthlyRecurringValue: values.monthlyRecurringValue,
@@ -137,7 +137,7 @@ export function DealDialog({ deal, defaultStage, onClose }: DealDialogProps) {
       contactId: values.contactId || null,
       companyId: values.companyId || null,
       expectedCloseDate: values.expectedCloseDate || null,
-      notes: values.notes || undefined,
+      notes: values.notes || null,
     }
     if (deal) {
       const updated = await updateMutation.mutateAsync({ id: deal.id, input })

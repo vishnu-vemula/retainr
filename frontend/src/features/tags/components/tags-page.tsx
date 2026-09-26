@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2, Plus } from 'lucide-react'
 import { Dialog } from '../../../shared/components/dialog'
@@ -38,7 +38,7 @@ function TagDialog({ tag, onClose }: TagDialogProps) {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     formState: { errors },
   } = useForm<TagFormValues>({
@@ -46,7 +46,7 @@ function TagDialog({ tag, onClose }: TagDialogProps) {
     values: { name: tag?.name ?? '', color: tag?.color ?? '#6366f1' },
   })
 
-  const color = watch('color')
+  const color = useWatch({ control, name: 'color' })
 
   const onSubmit = handleSubmit(async (values) => {
     if (tag) {

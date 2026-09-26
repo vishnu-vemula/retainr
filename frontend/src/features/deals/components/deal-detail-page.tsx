@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { Loader2, Pencil, Plus } from 'lucide-react'
@@ -14,7 +14,6 @@ import {
 import { DealDialog } from './deal-dialog'
 import { useApplyDealTemplate, useDealTemplates } from '../hooks/use-deal-templates'
 import type { DealTemplateId } from '../api/deals-api'
-import { ProposalPanel } from '../../proposals/components/proposal-panel'
 import { DetailHeader } from '../../../shared/components/detail-header'
 import { DescriptionList } from '../../../shared/components/description-list'
 import { SkeletonList } from '../../../shared/components/skeleton'
@@ -245,7 +244,7 @@ function AddItemRow({ dealId }: AddItemRowProps) {
   )
 }
 
-export function DealDetailPage() {
+export function DealDetailPage({ renderProposalPanel }: { renderProposalPanel: (dealId: string, hasItems: boolean) => ReactNode }) {
   const { dealId } = useParams<{ dealId: string }>()
   const { data: deal, isLoading } = useDealDetail(dealId ?? '')
   const stageMutation = useUpdateDeal()
@@ -464,7 +463,7 @@ export function DealDetailPage() {
         </Table>
       </Card>
 
-      <ProposalPanel dealId={deal.id} hasItems={deal.items.length > 0} />
+      {renderProposalPanel(deal.id, deal.items.length > 0)}
 
       <Card>
         <CardHeader className="flex-row items-center justify-between space-y-0">

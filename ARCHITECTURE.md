@@ -185,4 +185,4 @@ Declared and validated in `backend/src/config/env.ts`; mirrored in `.env.example
 
 ## 6. Future work (proposals, not commitments)
 
-After solo-agency validation: workspace ownership/membership migration, Playwright smoke tests, BFF/proxy deployment option, and optional payment/e-signature/calendar/email integrations.
+After solo-agency validation: workspace ownership/membership migration, Playwright smoke tests, BFF/proxy deployment option, and optional AI drafting, payment/e-signature/calendar/email integrations.
