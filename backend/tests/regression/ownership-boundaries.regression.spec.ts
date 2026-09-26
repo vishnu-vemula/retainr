@@ -1,6 +1,8 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 vi.mock('../../src/database/firebase', () => ({
   firebaseAuth: {
@@ -133,5 +135,31 @@ describe('ownership and route-order regressions', () => {
     const secondDetail = await request(app).get(`/api/v1/contacts/${second.body.data.id}`).set(as('move-owner'));
     expect(firstDetail.body.data.lastActivityAt).toBeNull();
     expect(secondDetail.body.data.lastActivityAt).toBe('2026-03-01T00:00:00.000Z');
+  });
+
+  it('repairs historical contact timestamps with the data migration', async () => {
+    const contact = await request(app).post('/api/v1/contacts').set(as('migration-owner')).send({ name: 'Historical' });
+    const empty = await request(app).post('/api/v1/contacts').set(as('migration-owner')).send({ name: 'No activity' });
+    expect(contact.status).toBe(201);
+    expect(empty.status).toBe(201);
+    const activity = await request(app).post('/api/v1/activities').set(as('migration-owner')).send({
+      type: 'NOTE', title: 'Historical note', contactId: contact.body.data.id, occurredAt: '2026-04-01T00:00:00.000Z'
+    });
+    expect(activity.status).toBe(201);
+
+    const stale = new Date('2030-01-01T00:00:00.000Z');
+    await prisma.contact.updateMany({
+      where: { id: { in: [contact.body.data.id, empty.body.data.id] }, ownerId: 'migration-owner' },
+      data: { lastActivityAt: stale }
+    });
+    const migration = readFileSync(resolve(__dirname, '../../prisma/migrations/20260927050000_recalculate_contact_last_activity/migration.sql'), 'utf8');
+    await prisma.$executeRawUnsafe(migration);
+
+    const repaired = await prisma.contact.findMany({
+      where: { id: { in: [contact.body.data.id, empty.body.data.id] }, ownerId: 'migration-owner' },
+      select: { id: true, lastActivityAt: true }
+    });
+    expect(repaired.find((row) => row.id === contact.body.data.id)?.lastActivityAt).toEqual(new Date('2026-04-01T00:00:00.000Z'));
+    expect(repaired.find((row) => row.id === empty.body.data.id)?.lastActivityAt).toBeNull();
   });
 });
