@@ -130,12 +130,21 @@ Sign up in the app with an email listed in `BOOTSTRAP_ADMIN_EMAILS` — you'll g
 | `npm run build` / `npm start` | `backend` | Compile / run production build |
 | `npm run typecheck` | both | `tsc --noEmit` |
 | `npm run lint` | both | ESLint |
-| `npm test` | `backend` | Vitest unit tests (no DB needed) |
-| `npm run test:e2e` | `backend` | End-to-end API tests — needs a scratch Postgres: `docker run -d --name ultra-tasker-pg -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=ultra_tasker -p 5434:5432 postgres:16-alpine` then `npx prisma migrate dev` |
+| `npm test` / `npm run test:unit` | `backend` | Vitest unit tests with fake repositories (no DB needed) |
+| `npm run test:integration` / `npm run test:e2e` | `backend` | Database-backed API integration tests — needs a scratch Postgres: `docker run -d --name ultra-tasker-pg -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=ultra_tasker -p 5434:5432 postgres:16-alpine` then `npx prisma migrate dev` |
+| `npm run test:regression` | `backend` | Regression tests for critical route ordering and owner-isolation boundaries (uses the same scratch Postgres) |
 | `npx prisma migrate dev` | `backend` | Apply schema changes |
 | `npm run db:seed` | `backend` | Demo data |
 | `npm run db:studio` | `backend` | Prisma Studio |
 | `npm run dev` / `build` / `start` / `lint` / `typecheck` | `frontend` | Next.js app |
+
+## Continuous integration
+
+GitHub Actions runs separate workflows for relevant pull requests and pushes to `main`:
+
+- **Backend** — typecheck, unit, integration, and regression tests, then production build, against PostgreSQL 16.
+- **Frontend** — typecheck and production build.
+- **Lint** — ESLint for both workspaces.
 
 ## API Overview
 

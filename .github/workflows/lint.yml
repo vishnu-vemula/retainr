@@ -1,0 +1,42 @@
+name: Lint
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - '.github/workflows/lint.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - '.github/workflows/lint.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint ${{ matrix.workspace }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - workspace: backend
+            lockfile: backend/package-lock.json
+          - workspace: frontend
+            lockfile: frontend/package-lock.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: ${{ matrix.lockfile }}
+      - run: npm ci
+        working-directory: ${{ matrix.workspace }}
+      - run: npm run lint
+        working-directory: ${{ matrix.workspace }}
