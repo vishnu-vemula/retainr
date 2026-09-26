@@ -4,12 +4,14 @@ on:
   pull_request:
     paths:
       - 'backend/**'
+      - 'frontend/**'
       - '.github/workflows/backend.yml'
   push:
     branches:
       - main
     paths:
       - 'backend/**'
+      - 'frontend/**'
       - '.github/workflows/backend.yml'
 
 permissions:
@@ -44,6 +46,10 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
         working-directory: backend
+      - run: npm ci
+        working-directory: frontend
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
       - run: npx prisma generate
         working-directory: backend
       - run: npx prisma migrate deploy
@@ -56,5 +62,9 @@ jobs:
         working-directory: backend
       - run: npm run test:regression
         working-directory: backend
+      - run: npm run test:browser
+        working-directory: backend
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
       - run: npm run build
         working-directory: backend

@@ -180,7 +180,8 @@ Declared and validated in `backend/src/config/env.ts`; mirrored in `.env.example
 - **Backend unit (Vitest)**: services with fake repositories — ownership scoping, position math, FK guards. Run `npm test` or `npm run test:unit`; no DB is required.
 - **Backend integration (Vitest + Supertest + PostgreSQL)**: API flows, including public proposal acceptance through onboarding and renewal alerts, run against a scratch Postgres on port 5434. Run `npm run test:integration` (or its `test:e2e` alias) after applying migrations.
 - **Backend regression (Vitest + Supertest + PostgreSQL)**: isolated tests protect high-risk route ordering and owner-isolation behavior. Run `npm run test:regression` against the same scratch database.
-- **Frontend**: typecheck + lint + build are the current gates; hook tests with `QueryClient` wrapper are the next step.
+- **Browser e2e (Vitest + headless Chrome + real Next.js/Express/PostgreSQL)**: `npm run test:browser` starts both servers, creates a proposal through the API, chooses a package and add-on in the browser, accepts it, then checks the stored decision, deal, onboarding tasks, notification, and renewal dashboard. Firebase token verification is stubbed for fixture creation; the public proposal flow uses no login. The test uses Chrome DevTools Protocol with no added package dependency; Chrome/Edge and frontend `node_modules` are required.
+- **Frontend**: typecheck + lint + build, plus the cross-stack browser journey above, are the current gates; isolated hook tests with a `QueryClient` wrapper are the next step.
 - Contract safety: frontend types in `shared/types.ts` must stay in sync with Zod schemas — changing one without the other is a review blocker.
 
 ## 6. Future work (proposals, not commitments)

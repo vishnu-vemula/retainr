@@ -13,6 +13,7 @@
     "test": "npm run test:unit",
     "test:unit": "vitest run",
     "test:integration": "vitest run --config vitest.integration.config.mts",
+    "test:browser": "vitest run --config vitest.browser.config.mts",
     "test:regression": "vitest run --config vitest.regression.config.mts",
     "test:e2e": "npm run test:integration",
     "db:seed": "tsx prisma/seed.ts",

@@ -151,19 +151,20 @@ Sign up in the app with an email listed in `BOOTSTRAP_ADMIN_EMAILS` — you'll g
 | `npm test` / `npm run test:unit` | `backend` | Vitest unit tests with fake repositories (no DB needed) |
 | `npm run test:integration` / `npm run test:e2e` | `backend` | Database-backed API integration tests — needs a scratch Postgres: `docker run -d --name retainr-pg -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=ultra_tasker -p 5434:5432 postgres:16-alpine` then `npx prisma migrate dev` |
 | `npm run test:regression` | `backend` | Regression tests for critical route ordering and owner-isolation boundaries (uses the same scratch Postgres) |
+| `npm run test:browser` | `backend` | Headless Chrome/Edge journey: real Next frontend → Express API → scratch PostgreSQL, including proposal choice, acceptance, onboarding, and renewal. Install frontend dependencies first; set `CHROME_BIN` if browser discovery fails. |
 | `npx prisma migrate dev` | `backend` | Apply schema changes |
 | `npx prisma migrate deploy` | `backend` | Apply committed migrations to an existing deployment |
 | `npm run db:seed` | `backend` | Demo data |
 | `npm run db:studio` | `backend` | Prisma Studio |
 | `npm run dev` / `build` / `start` / `lint` / `typecheck` | `frontend` | Next.js app |
 
-Run `test:integration` and `test:regression` sequentially when they point at the same scratch database: both suites reset their fixtures before running.
+Run `test:integration`, `test:regression`, and `test:browser` sequentially when they point at the same scratch database: the first two suites reset their fixtures before running.
 
 ## Continuous integration
 
 GitHub Actions runs separate workflows for relevant pull requests and pushes to `main`:
 
-- **Backend** — typecheck, unit, integration, and regression tests, then production build, against PostgreSQL 16.
+- **Backend** — typecheck, unit, integration, regression, and Chrome browser tests, then production build, against PostgreSQL 16.
 - **Frontend** — typecheck and production build.
 - **Lint** — ESLint for both workspaces.
 
