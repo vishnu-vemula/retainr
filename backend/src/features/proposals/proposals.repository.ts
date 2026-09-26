@@ -14,7 +14,7 @@ export interface IProposalsRepository {
   create(ownerId: string, dealId: string, tokenHash: string, snapshot: ProposalSnapshot, expiresAt: Date): Promise<ProposalRecord>;
   list(ownerId: string, dealId: string): Promise<ProposalRecord[]>;
   findByTokenHash(tokenHash: string): Promise<ProposalRecord | null>;
-  markViewed(tokenHash: string, now: Date): Promise<void>;
+  markViewed(tokenHash: string, now: Date): Promise<boolean>;
   respond(tokenHash: string, now: Date, decision: 'ACCEPTED' | 'DECLINED', packageId: string | null, addonIds: string[]): Promise<boolean>;
 }
 
@@ -41,11 +41,12 @@ export class ProposalsRepository implements IProposalsRepository {
     return this.prisma.proposal.findUnique({ where: { tokenHash }, select: proposalPublicSelect });
   }
 
-  async markViewed(tokenHash: string, now: Date): Promise<void> {
-    await this.prisma.proposal.updateMany({
+  async markViewed(tokenHash: string, now: Date): Promise<boolean> {
+    const result = await this.prisma.proposal.updateMany({
       where: { tokenHash, expiresAt: { gt: now }, status: 'CREATED' },
       data: { status: 'VIEWED', viewedAt: now }
     });
+    return result.count === 1;
   }
 
   async respond(tokenHash: string, now: Date, decision: 'ACCEPTED' | 'DECLINED', packageId: string | null, addonIds: string[]): Promise<boolean> {

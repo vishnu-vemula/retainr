@@ -38,13 +38,14 @@ const variantStyles: Record<string, BadgeStyle> = {
 
 interface StatusBadgeProps {
   variant: BadgeVariant
+  kind?: 'deal'
 }
 
-export function StatusBadge({ variant }: StatusBadgeProps) {
+export function StatusBadge({ variant, kind }: StatusBadgeProps) {
   return (
     <Badge variant={variant ? variantStyles[variant] ?? 'muted' : 'muted'}>
       <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" aria-hidden="true" />
-      {variant ? DEAL_STAGE_LABELS[variant as DealStage] ?? titleCase(variant) : '—'}
+      {variant ? kind === 'deal' ? DEAL_STAGE_LABELS[variant as DealStage] : titleCase(variant) : '—'}
     </Badge>
   )
 }

@@ -44,6 +44,16 @@ const buildDeps = () => ({
 });
 
 describe('DealsService', () => {
+  it('rejects a renewal date before the service starts', async () => {
+    const repo = buildFakeRepo();
+    const deps = buildDeps();
+    const service = new DealsService(repo, deps.audit, deps.notifications, deps.tags, deps.onboarding);
+    await expect(service.create('u1', {
+      title: 'Retainer', value: 1000, engagementType: 'RETAINER',
+      serviceStartDate: new Date('2026-10-10'), renewalDate: new Date('2026-10-01')
+    })).rejects.toMatchObject({ code: 'INVALID_RENEWAL_DATE' });
+    expect(repo.create).not.toHaveBeenCalled();
+  });
   it('assigns next position in stage on create', async () => {
     const repo = buildFakeRepo();
     const service = new DealsService(repo, buildDeps().audit, buildDeps().notifications, buildDeps().tags, buildDeps().onboarding);
@@ -65,7 +75,7 @@ describe('DealsService', () => {
     const service = new DealsService(repo, deps.audit, deps.notifications, deps.tags, deps.onboarding);
     const item = await service.addItem('u1', 'd1', { description: 'Item', quantity: 1, unitPrice: 10, kind: 'BASE' });
     expect(item.quantity).toBe(2);
-    expect(repo.sumItemTotals).toHaveBeenCalledWith('d1');
+    expect(repo.sumItemTotals).toHaveBeenCalledWith('d1', 'u1');
     expect(repo.setValue).toHaveBeenCalledWith('d1', 'u1', 20);
   });
 
@@ -109,7 +119,7 @@ describe('DealsService', () => {
       'u1',
       expect.objectContaining({ type: 'DEAL_WON', dedupeKey: 'deal-won:d1' })
     );
-    expect(deps.audit.log).toHaveBeenCalledWith('u1', 'STAGE_CHANGE', 'DEAL', 'd1', 'NEW → WON');
+    expect(deps.audit.log).toHaveBeenCalledWith('u1', 'STAGE_CHANGE', 'DEAL', 'd1', 'Lead → Won');
     expect(deps.onboarding.createForWonDeal).toHaveBeenCalledWith('u1', 'd1', undefined);
   });
 
@@ -143,7 +153,7 @@ describe('DealsService', () => {
       'u1',
       [expect.objectContaining({ id: 'd1', stage: 'WON', position: 0, probability: 100 })]
     );
-    expect(deps.audit.log).toHaveBeenCalledWith('u1', 'STAGE_CHANGE', 'DEAL', 'd1', 'NEW → WON');
+    expect(deps.audit.log).toHaveBeenCalledWith('u1', 'STAGE_CHANGE', 'DEAL', 'd1', 'Lead → Won');
     expect(deps.notifications.dispatch).toHaveBeenCalledWith(
       'u1',
       expect.objectContaining({ type: 'DEAL_WON', dedupeKey: 'deal-won:d1' })

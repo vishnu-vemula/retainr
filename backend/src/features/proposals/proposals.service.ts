@@ -77,9 +77,11 @@ export class ProposalsService {
     const proposal = await this.repo.findByTokenHash(tokenHash);
     if (!proposal) throw AppError.notFound('Proposal');
     if (proposal.expiresAt <= new Date()) throw new AppError(410, 'PROPOSAL_EXPIRED', 'This proposal link has expired');
-    await this.repo.markViewed(tokenHash, new Date());
+    const firstView = await this.repo.markViewed(tokenHash, new Date());
+    if (firstView) await this.audit.log(proposal.ownerId, 'UPDATE', 'PROPOSAL', proposal.id, 'Client viewed proposal');
     const current = await this.repo.findByTokenHash(tokenHash);
     if (!current) throw AppError.notFound('Proposal');
+    if (current.expiresAt <= new Date()) throw new AppError(410, 'PROPOSAL_EXPIRED', 'This proposal link has expired');
     return this.toPublic(current);
   }
 

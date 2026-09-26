@@ -27,7 +27,7 @@ function buildFixture() {
     }),
     list: vi.fn().mockResolvedValue([record]),
     findByTokenHash: vi.fn().mockImplementation(async () => record),
-    markViewed: vi.fn().mockResolvedValue(undefined),
+    markViewed: vi.fn().mockResolvedValue(true),
     respond: vi.fn().mockImplementation(async (_hash: string, _now: Date, decision: 'ACCEPTED' | 'DECLINED', selectedPackageId: string | null, selectedAddonIds: string[]) => {
       record = { ...record, status: decision, selectedPackageId, selectedAddonIds };
       return true;
@@ -82,5 +82,14 @@ describe('ProposalsService', () => {
     await expect(service.getPublic('token')).rejects.toMatchObject({ code: 'PROPOSAL_EXPIRED' });
     await expect(service.respond('token', { decision: 'DECLINED' })).rejects.toMatchObject({ code: 'PROPOSAL_EXPIRED' });
     expect(repo.respond).not.toHaveBeenCalled();
+  });
+
+  it('audits the first view without exposing the owner record', async () => {
+    const { service, audit, repo } = buildFixture();
+    const result = await service.getPublic('token');
+    expect(result).toEqual(expect.objectContaining({ id: 'p1', snapshot }));
+    expect(result).not.toHaveProperty('ownerId');
+    expect(repo.markViewed).toHaveBeenCalledOnce();
+    expect(audit.log).toHaveBeenCalledWith('u1', 'UPDATE', 'PROPOSAL', 'p1', 'Client viewed proposal');
   });
 });

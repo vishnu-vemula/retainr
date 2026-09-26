@@ -113,7 +113,7 @@ export function DealBoard({ search }: DealBoardProps) {
                   size="icon"
                   className="h-8 w-8 shrink-0 border-border/70 shadow-none"
                   onClick={() => openCreate(stage)}
-                  aria-label={`New deal in ${stage}`}
+                  aria-label={`New engagement in ${DEAL_STAGE_LABELS[stage]}`}
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -139,7 +139,7 @@ export function DealBoard({ search }: DealBoardProps) {
                         onClick={() => openCreate(stage)}
                       >
                         <Plus className="h-3.5 w-3.5" />
-                        New deal
+                        New engagement
                       </button>
                     ) : null}
                   </div>

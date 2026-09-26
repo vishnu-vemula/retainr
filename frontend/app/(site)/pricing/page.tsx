@@ -3,7 +3,7 @@ import { PricingPage } from '@/src/features/marketing/components/pricing-page'
 
 export const metadata: Metadata = {
   title: 'Pricing',
-  description: 'Retainr is free while in early access. Studio and Agency plans with retainer tooling are coming soon.',
+  description: 'Retainr includes proposals, onboarding and renewal tools in early access. Team plans will be announced later.',
 }
 
 export default function PricingRoute() {

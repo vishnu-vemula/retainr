@@ -3,6 +3,7 @@ import { useParams } from 'next/navigation'
 import { Button } from '../../../shared/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../../../shared/components/ui/card'
 import { formatCurrency, formatDate } from '../../../shared/lib/format'
+import { BrandLogo } from '../../../shared/components/brand-logo'
 import { usePublicProposal, useRespondToProposal } from '../hooks/use-proposals'
 
 export function PublicProposalPage() {
@@ -37,6 +38,7 @@ export function PublicProposalPage() {
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 px-4 py-12 sm:px-8">
+      <BrandLogo />
       <header className="space-y-2">
         <p className="text-xs font-semibold uppercase tracking-widest text-primary">Retainr proposal</p>
         <h1 className="font-display text-4xl font-semibold text-foreground">{proposal.snapshot.title}</h1>

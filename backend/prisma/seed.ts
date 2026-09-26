@@ -91,18 +91,18 @@ async function main(): Promise<void> {
     })
   ]);
 
-  const [core, pro, support] = await Promise.all([
-    prisma.product.create({ data: { name: 'Retainr Core', sku: 'RTN-01', price: 49, currency: 'USD', ownerId: ownerUid } }),
-    prisma.product.create({ data: { name: 'Retainr Pro', sku: 'RTN-02', price: 99, currency: 'USD', ownerId: ownerUid } }),
-    prisma.product.create({ data: { name: 'Onboarding & Support', sku: 'SUP-03', price: 1500, currency: 'USD', ownerId: ownerUid } })
+  await Promise.all([
+    prisma.product.create({ data: { name: 'Paid ads management', sku: 'ADS-01', price: 1800, currency: 'USD', ownerId: ownerUid } }),
+    prisma.product.create({ data: { name: 'SEO optimization', sku: 'SEO-02', price: 1500, currency: 'USD', ownerId: ownerUid } }),
+    prisma.product.create({ data: { name: 'Creative testing', sku: 'CRE-03', price: 600, currency: 'USD', ownerId: ownerUid } })
   ]);
 
   const dealData = [
-    { title: 'Acme annual license', value: 24000, stage: 'NEGOTIATION' as const, probability: 75, contactId: john.id, companyId: acme.id, expectedCloseDate: days(10), nextStep: 'Send revised MSA', source: 'INBOUND' as const },
-    { title: 'Globex pilot program', value: 8500, stage: 'PROPOSAL' as const, probability: 50, contactId: jane.id, companyId: globex.id, expectedCloseDate: days(21), nextStep: 'Technical review call', source: 'OUTBOUND' as const },
-    { title: 'Initech migration', value: 42000, stage: 'QUALIFIED' as const, probability: 25, contactId: peter.id, companyId: initech.id, expectedCloseDate: days(45), source: 'REFERRAL' as const },
+    { title: 'Acme paid ads management', value: 4200, stage: 'NEGOTIATION' as const, probability: 75, engagementType: 'RETAINER' as const, oneTimeValue: 1200, monthlyRecurringValue: 2400, serviceStartDate: days(15), renewalDate: days(75), renewalHealth: 'HEALTHY' as const, nextReviewDate: days(30), contactId: john.id, companyId: acme.id, expectedCloseDate: days(10), nextStep: 'Confirm campaign scope', source: 'INBOUND' as const },
+    { title: 'Globex SEO retainer', value: 1800, stage: 'PROPOSAL' as const, probability: 50, engagementType: 'RETAINER' as const, oneTimeValue: 1000, monthlyRecurringValue: 1800, serviceStartDate: days(30), renewalDate: days(90), renewalHealth: 'UNKNOWN' as const, contactId: jane.id, companyId: globex.id, expectedCloseDate: days(21), nextStep: 'Review SEO scope', source: 'OUTBOUND' as const },
+    { title: 'Initech website build', value: 42000, stage: 'QUALIFIED' as const, probability: 25, engagementType: 'PROJECT' as const, oneTimeValue: 42000, contactId: peter.id, companyId: initech.id, expectedCloseDate: days(45), source: 'REFERRAL' as const },
     { title: 'Analytics add-on', value: 6500, stage: 'NEW' as const, probability: 10, contactId: samantha.id, companyId: initech.id, expectedCloseDate: days(60), source: 'EVENT' as const },
-    { title: 'Acme support renewal', value: 12000, stage: 'WON' as const, probability: 100, contactId: john.id, companyId: acme.id, closedAt: days(-5), source: 'INBOUND' as const },
+    { title: 'Acme growth retainer', value: 2000, stage: 'WON' as const, probability: 100, engagementType: 'RETAINER' as const, oneTimeValue: 500, monthlyRecurringValue: 2000, serviceStartDate: days(-55), renewalDate: days(25), renewalHealth: 'AT_RISK' as const, renewalProbability: 35, nextReviewDate: days(3), contactId: john.id, companyId: acme.id, closedAt: days(-5), source: 'INBOUND' as const },
     { title: 'Globex training', value: 3000, stage: 'LOST' as const, probability: 0, contactId: jane.id, companyId: globex.id, closedAt: days(-12), lostReason: 'Went with internal training', source: 'PARTNER' as const }
   ];
   const deals = [];
@@ -116,9 +116,10 @@ async function main(): Promise<void> {
 
   await prisma.dealItem.createMany({
     data: [
-      { dealId: deals[0]!.id, ownerId: ownerUid, productId: pro.id, description: 'Retainr Pro ×20 seats', quantity: 20, unitPrice: 99 },
-      { dealId: deals[0]!.id, ownerId: ownerUid, productId: support.id, description: 'Onboarding package', quantity: 1, unitPrice: 4200 },
-      { dealId: deals[1]!.id, ownerId: ownerUid, productId: core.id, description: 'Core pilot ×10 seats', quantity: 10, unitPrice: 49 }
+      { dealId: deals[0]!.id, ownerId: ownerUid, description: 'Campaign strategy and setup', quantity: 1, unitPrice: 1200, kind: 'BASE' },
+      { dealId: deals[0]!.id, ownerId: ownerUid, description: 'Paid ads management — monthly', quantity: 1, unitPrice: 2400, kind: 'PACKAGE' },
+      { dealId: deals[0]!.id, ownerId: ownerUid, description: 'Creative testing', quantity: 1, unitPrice: 600, kind: 'ADD_ON' },
+      { dealId: deals[1]!.id, ownerId: ownerUid, description: 'SEO strategy — monthly', quantity: 1, unitPrice: 1800, kind: 'PACKAGE' }
     ]
   });
 
@@ -138,14 +139,19 @@ async function main(): Promise<void> {
     { title: 'Prepare Globex pilot success metrics', dueDate: days(5), status: 'IN_PROGRESS' as const, priority: 'MEDIUM' as const, contactId: jane.id, dealId: deals[1]!.id },
     { title: 'Discovery call with Initech team', dueDate: days(-1), status: 'TODO' as const, priority: 'URGENT' as const, contactId: peter.id, dealId: deals[2]!.id },
     { title: 'Demo analytics add-on for Samantha', dueDate: days(7), status: 'TODO' as const, priority: 'LOW' as const, contactId: samantha.id, dealId: deals[3]!.id },
-    { title: 'Invoice Acme for renewal', dueDate: days(-3), status: 'DONE' as const, priority: 'MEDIUM' as const, contactId: john.id }
+    { title: 'Invoice Acme for renewal', dueDate: days(-3), status: 'DONE' as const, priority: 'MEDIUM' as const, contactId: john.id },
+    { title: 'Collect assets and access', dueDate: days(-2), status: 'TODO' as const, priority: 'HIGH' as const, contactId: john.id, dealId: deals[4]!.id, onboardingKey: 'collect-assets' },
+    { title: 'Schedule kickoff', dueDate: days(1), status: 'TODO' as const, priority: 'HIGH' as const, contactId: john.id, dealId: deals[4]!.id, onboardingKey: 'schedule-kickoff' },
+    { title: 'Confirm scope', dueDate: days(2), status: 'TODO' as const, priority: 'HIGH' as const, contactId: john.id, dealId: deals[4]!.id, onboardingKey: 'confirm-scope' },
+    { title: 'Assign account owner', dueDate: days(4), status: 'TODO' as const, priority: 'HIGH' as const, contactId: john.id, dealId: deals[4]!.id, onboardingKey: 'assign-owner' },
+    { title: 'Schedule first client review', dueDate: days(6), status: 'TODO' as const, priority: 'HIGH' as const, contactId: john.id, dealId: deals[4]!.id, onboardingKey: 'first-review' }
   ];
   for (const task of tasks) {
     await prisma.task.create({ data: { ...task, ownerId: ownerUid, completedAt: task.status === 'DONE' ? days(-3) : null } });
   }
 
   console.log(
-    `Seed complete: 3 companies, 4 contacts, ${Object.keys(tags).length} tags, ${deals.length} deals (3 with line items), 3 products, ${activities.length} activities, ${tasks.length} tasks (owner ${ownerUid})`
+    `Seed complete: 3 companies, 4 contacts, ${Object.keys(tags).length} tags, ${deals.length} deals (2 with line items), 3 products, ${activities.length} activities, ${tasks.length} tasks (owner ${ownerUid})`
   );
 }
 

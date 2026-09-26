@@ -188,20 +188,20 @@ function ReportsContent({ stats }: { stats: DashboardStats }) {
         <StatTile
           label="Win rate"
           value={closed > 0 ? `${percent(won, closed)}%` : '—'}
-          sub={closed > 0 ? `${won} won · ${lost} lost` : 'No closed deals yet'}
+          sub={closed > 0 ? `${won} won · ${lost} lost` : 'No closed engagements yet'}
           icon={Percent}
         />
         <StatTile
           label="Open pipeline"
           value={formatCompactCurrency(stats.deals.pipelineValue, 'USD')}
-          sub={plural(stats.deals.total - closed, 'open deal')}
+          sub={plural(stats.deals.total - closed, 'open opportunity')}
           icon={Wallet}
         />
-        <StatTile label="Won revenue" value={formatCompactCurrency(stats.deals.wonValue, 'USD')} sub={plural(won, 'deal')} icon={Trophy} />
+        <StatTile label="Won revenue" value={formatCompactCurrency(stats.deals.wonValue, 'USD')} sub={plural(won, 'engagement')} icon={Trophy} />
         <StatTile
           label="Avg deal size"
           value={formatCompactCurrency(stats.deals.avgDealSize, 'USD')}
-          sub={`across ${plural(stats.deals.total, 'deal')}`}
+          sub={`across ${plural(stats.deals.total, 'engagement')}`}
           icon={BarChart3}
         />
         <StatTile
@@ -236,7 +236,7 @@ function ReportsContent({ stats }: { stats: DashboardStats }) {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="p-6 lg:col-span-2">
-          <SectionTitle title="Pipeline by stage" sub="Share of all deals in each stage" href="/deals" linkLabel="Board" />
+          <SectionTitle title="Pipeline by stage" sub="Share of all engagements in each stage" href="/deals" linkLabel="Board" />
           <StageDistribution stats={stats} />
         </Card>
         <Card className="p-6">

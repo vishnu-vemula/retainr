@@ -62,7 +62,7 @@ export function useCreateDeal() {
   return useMutation({
     mutationFn: (input: DealInput) => createDeal(input),
     onSuccess: () => {
-      toast.success('Deal saved')
+      toast.success('Engagement saved')
       invalidate()
     },
     onError: notifyError,
@@ -83,7 +83,7 @@ export function useUpdateDeal() {
       return { previous }
     },
     onSuccess: () => {
-      toast.success('Deal saved')
+      toast.success('Engagement saved')
     },
     onError: (error, { id }, context) => {
       if (context?.previous) queryClient.setQueryData(['deal', id], context.previous)
@@ -150,7 +150,7 @@ export function useDeleteDeal() {
   return useMutation({
     mutationFn: (id: string) => deleteDeal(id),
     onSuccess: () => {
-      toast.success('Deal deleted')
+      toast.success('Engagement deleted')
       invalidate()
     },
     onError: notifyError,

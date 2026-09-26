@@ -3,7 +3,7 @@ import { AboutPage } from '@/src/features/marketing/components/about-page'
 
 export const metadata: Metadata = {
   title: 'About',
-  description: 'Retainr is the CRM for agencies and client-first teams whose business runs on relationships.',
+  description: 'Retainr helps performance-marketing agencies turn proposals into onboarding and healthy retainers.',
 }
 
 export default function AboutRoute() {

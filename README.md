@@ -117,7 +117,7 @@ Optional demo data:
 npm run db:seed
 ```
 
-> The seed assigns data to `SEED_OWNER_UID` (defaults to a placeholder). For the data to be visible to your account, sign in once, grab your Firebase UID, put it in `.env` as `SEED_OWNER_UID`, and re-run the seed.
+> The seed replaces all CRM records owned by `SEED_OWNER_UID` (defaults to a placeholder). Use a demo account. To see the data, sign in once, grab your Firebase UID, and set `SEED_OWNER_UID` before seeding.
 
 ### 3. Frontend
 
@@ -146,6 +146,7 @@ Sign up in the app with an email listed in `BOOTSTRAP_ADMIN_EMAILS` — you'll g
 | `npm run test:integration` / `npm run test:e2e` | `backend` | Database-backed API integration tests — needs a scratch Postgres: `docker run -d --name retainr-pg -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=ultra_tasker -p 5434:5432 postgres:16-alpine` then `npx prisma migrate dev` |
 | `npm run test:regression` | `backend` | Regression tests for critical route ordering and owner-isolation boundaries (uses the same scratch Postgres) |
 | `npx prisma migrate dev` | `backend` | Apply schema changes |
+| `npx prisma migrate deploy` | `backend` | Apply committed migrations to an existing deployment |
 | `npm run db:seed` | `backend` | Demo data |
 | `npm run db:studio` | `backend` | Prisma Studio |
 | `npm run dev` / `build` / `start` / `lint` / `typecheck` | `frontend` | Next.js app |

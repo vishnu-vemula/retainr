@@ -31,9 +31,9 @@ import {
 
 export const siteConfig = {
   name: 'Retainr',
-  tagline: 'The CRM for teams that keep their clients.',
+  tagline: 'From agency proposal to renewal.',
   description:
-    'Retainr brings contacts, companies, your deal pipeline, quotes and follow-ups into one calm workspace — so client relationships never go cold.',
+    'Retainr helps performance-marketing agencies scope proposals, onboard clients, and stay ahead of retainer renewals.',
   contactEmail: 'hello@retainr.app',
 }
 
@@ -81,8 +81,10 @@ export const footerColumns: { title: string; links: MarketingLink[] }[] = [
 export const capabilityTicker = [
   'Contacts',
   'Companies',
-  'Deal pipeline',
-  'Quote builder',
+  'Agency pipeline',
+  'Shareable proposals',
+  'Renewal health',
+  'Onboarding checklist',
   'Tasks',
   'Activity timeline',
   'Notifications',
@@ -108,17 +110,17 @@ export const coreFeatures: Feature[] = [
   {
     icon: KanbanSquare,
     title: 'Drag-and-drop pipeline',
-    description: 'Move deals from New to Won across six stages. Probability and close dates update as you go.',
+    description: 'Move work from Lead and Discovery through Scope sent and Client review to Won. Probability and close dates update as you go.',
   },
   {
     icon: Receipt,
-    title: 'Quote builder',
-    description: 'Add products or free-text line items to a deal — its value recalculates automatically.',
+    title: 'Proposals and scope',
+    description: 'Build a quote from services or templates, share an expiring link, and track the client’s choice.',
   },
   {
     icon: ListChecks,
     title: 'Tasks & follow-ups',
-    description: 'Priorities, due dates and one-click completion, linked to the contact or deal they move forward.',
+    description: 'Priorities, due dates and one-click completion. Won deals create a five-step onboarding checklist.',
   },
   {
     icon: MessagesSquare,
@@ -128,7 +130,7 @@ export const coreFeatures: Feature[] = [
   {
     icon: Bell,
     title: 'Smart notifications',
-    description: 'Overdue-task reminders and won-deal alerts land in one inbox, never duplicated.',
+    description: 'Overdue tasks, renewal dates, at-risk retainers and won deals land in one deduplicated inbox.',
   },
 ]
 
@@ -138,8 +140,8 @@ export const extraFeatures: Feature[] = [
   { icon: Package, title: 'Product catalog', description: 'Reusable products with SKUs and prices for faster quotes.' },
   { icon: History, title: 'Audit trail', description: 'Every create, update, delete and stage change is recorded.' },
   { icon: Download, title: 'CSV export', description: 'Take your contact list anywhere with a single click.' },
-  { icon: UserCog, title: 'Team roles', description: 'Admins manage members and roles from the settings area.' },
-  { icon: Gauge, title: 'Live dashboard', description: 'Pipeline value, win revenue and task health at a glance.' },
+  { icon: UserCog, title: 'Account roles', description: 'Admins manage account access and roles from settings.' },
+  { icon: Gauge, title: 'Renewal dashboard', description: 'MRR, forecast, client inactivity and renewals due in 30, 60 or 90 days.' },
   { icon: Layers, title: 'Stage rules', description: 'Stage moves set probability and stamp close dates for you.' },
 ]
 
@@ -169,10 +171,10 @@ export const featureDeepDives: FeatureDeepDive[] = [
   },
   {
     id: 'pipeline',
-    eyebrow: 'Deal pipeline',
-    title: 'See every deal. Move it forward.',
+    eyebrow: 'Agency pipeline',
+    title: 'See every opportunity. Move it forward.',
     description:
-      'A Kanban board across New, Qualified, Proposal, Negotiation, Won and Lost — drag a card and the whole team sees it.',
+      'A Kanban board across Lead, Discovery, Scope sent, Client review, Won and Lost — drag a card to move the work forward.',
     points: [
       'Drag-and-drop ordering that persists',
       'Stage changes set default probability automatically',
@@ -186,12 +188,12 @@ export const featureDeepDives: FeatureDeepDive[] = [
     eyebrow: 'Quote builder',
     title: 'Quotes that add themselves up.',
     description:
-      'Build a deal from your product catalog or free-text line items. Quantities and prices edit inline, and the deal value follows.',
+      'Build a scope from your services or three agency templates. Share a snapshot, then let the client choose a package and add-ons.',
     points: [
       'Products with SKUs, prices and currencies',
       'Inline quantity and unit-price editing',
       'Deal value recalculated on every change',
-      'Works with USD, EUR, GBP and INR',
+      'Expiring share links with viewed, accepted and declined status',
     ],
     preview: 'quote',
   },
@@ -200,12 +202,12 @@ export const featureDeepDives: FeatureDeepDive[] = [
     eyebrow: 'Tasks & follow-ups',
     title: 'Follow-ups that never slip.',
     description:
-      'Turn every promise into a task linked to the contact or deal it belongs to — then tick it off in one click.',
+      'Turn every promise into a task linked to a client or engagement. Winning a deal creates five onboarding handoffs.',
     points: [
       'To do, in progress and done states',
       'Low → urgent priorities with due dates',
       'Overdue highlighting across the app',
-      'Linked to contacts and deals',
+      'Reusable won-deal onboarding checklist',
     ],
     preview: 'tasks',
   },
@@ -228,10 +230,10 @@ export const featureDeepDives: FeatureDeepDive[] = [
     eyebrow: 'Notifications & audit',
     title: 'Know what changed — and who needs you.',
     description:
-      'An in-app inbox surfaces overdue tasks and won deals, while the audit trail records every change to every record.',
+      'An in-app inbox surfaces overdue tasks, renewals and at-risk retainers, while the audit trail records changes.',
     points: [
       'Unread counts and mark-all-read',
-      'Deduplicated overdue and deal-won alerts',
+      'Deduplicated overdue, won and renewal alerts',
       'Per-record history on detail pages',
       'Stage changes captured with before and after',
     ],
@@ -242,10 +244,10 @@ export const featureDeepDives: FeatureDeepDive[] = [
     eyebrow: 'Dashboard & reports',
     title: 'Numbers you can act on.',
     description:
-      'Pipeline value, won revenue, average deal size, stage distribution and task health — live, the moment you sign in.',
+      'Pipeline, recurring revenue, renewal forecast, inactive accounts and overdue onboarding in one owner-scoped view.',
     points: [
       'Six-month revenue trend',
-      'Deals by stage and top companies',
+      'Retainers renewing in 30, 60 and 90 days',
       'Contact status and task health reports',
       'Owner-scoped: you only see your data',
     ],
@@ -270,18 +272,18 @@ export const featureDeepDives: FeatureDeepDive[] = [
 export const roadmap: Feature[] = [
   {
     icon: RefreshCcw,
-    title: 'Retainers & renewals',
-    description: 'Track project vs. retainer work, monthly value and upcoming renewal dates.',
+    title: 'Agency workspaces',
+    description: 'Shared records, membership and agency roles after solo users validate the workflow.',
   },
   {
     icon: Radar,
-    title: 'Client health',
-    description: 'Flag healthy and at-risk accounts before a renewal conversation.',
+    title: 'Calendar and email sync',
+    description: 'Connect existing calendars and inboxes after the core renewal workflow is proven.',
   },
   {
     icon: ClipboardCheck,
-    title: 'Proposals',
-    description: 'Publish proposals from a deal and see when they are accepted or declined.',
+    title: 'Payments and e-signature',
+    description: 'Optional integrations after agencies validate proposal and onboarding flow.',
   },
   {
     icon: FileSpreadsheet,
@@ -302,11 +304,11 @@ export const steps = [
   },
   {
     title: 'Move',
-    description: 'Create a deal, build the quote, and drag it through the pipeline as it progresses.',
+    description: 'Create an engagement, build a scope, share a proposal, and move it through the pipeline.',
   },
   {
     title: 'Retain',
-    description: 'Tasks, reminders and a complete timeline keep every client relationship warm.',
+    description: 'Onboarding tasks, renewal alerts and account health keep every retainer moving.',
   },
 ]
 
@@ -331,6 +333,8 @@ export const plans: Plan[] = [
     features: [
       'Unlimited contacts, companies and deals',
       'Drag-and-drop pipeline and quote builder',
+      'Shareable proposals and onboarding checklist',
+      'Retainer health, renewals and recurring revenue',
       'Tasks, activity timeline and notifications',
       'Dashboard, reports and audit trail',
       'Global search, tags and CSV export',
@@ -339,13 +343,13 @@ export const plans: Plan[] = [
   {
     name: 'Studio',
     status: 'soon',
-    monthly: 24,
-    description: 'For growing agencies that run on retainers.',
+    monthly: null,
+    description: 'Planned collaboration tools for growing agencies.',
     cta: { href: '/contact', label: 'Get notified' },
     features: [
       'Everything in Early access',
-      'Retainers, renewals and client health',
-      'Proposals with accept / decline tracking',
+      'Shared agency workspace',
+      'Team membership and account roles',
       'CSV import',
       'Email reminders',
     ],
@@ -353,12 +357,12 @@ export const plans: Plan[] = [
   {
     name: 'Agency',
     status: 'soon',
-    monthly: 49,
-    description: 'For multi-team agencies that need more control.',
+    monthly: null,
+    description: 'Planned integrations and support for larger teams.',
     cta: { href: '/contact#demo', label: 'Talk to us' },
     features: [
       'Everything in Studio',
-      'Advanced roles and permissions',
+      'Calendar and email integrations',
       'Priority support',
       'Onboarding session',
       'Custom data migration',
@@ -372,8 +376,9 @@ export const planComparison: { label: string; values: [string, string, string] }
   { label: 'Tasks, timeline & notifications', values: ['✓', '✓', '✓'] },
   { label: 'Dashboard & reports', values: ['✓', '✓', '✓'] },
   { label: 'Audit trail', values: ['✓', '✓', '✓'] },
-  { label: 'Retainers & renewals', values: ['—', 'Planned', 'Planned'] },
-  { label: 'Proposals', values: ['—', 'Planned', 'Planned'] },
+  { label: 'Retainers & renewals', values: ['✓', '✓', '✓'] },
+  { label: 'Proposals', values: ['✓', '✓', '✓'] },
+  { label: 'Shared workspace', values: ['—', 'Planned', 'Planned'] },
   { label: 'Advanced roles', values: ['Admin / member', 'Admin / member', 'Planned'] },
   { label: 'Support', values: ['Community', 'Email', 'Priority'] },
 ]
@@ -387,12 +392,12 @@ export const homeFaqs: Faq[] = [
   {
     question: 'Who is Retainr for?',
     answer:
-      'Agencies, consultancies and any client-first team that wins work through relationships and needs contacts, deals and follow-ups in one place.',
+      'Performance-marketing agencies that need to turn scopes into accepted proposals, onboard clients, and manage recurring retainers.',
   },
   {
     question: 'Is Retainr free?',
     answer:
-      'Yes — every feature available today is free during early access. Paid plans will add retainer and proposal tooling later, and we will tell you well in advance.',
+      'Yes — proposals, onboarding and renewal tools are included during early access. Future team plans are not billed yet.',
   },
   {
     question: 'How do I sign in?',
@@ -412,16 +417,16 @@ export const homeFaqs: Faq[] = [
 export const pricingFaqs: Faq[] = [
   {
     question: 'What does early access include?',
-    answer: 'Everything that is live in Retainr today — no seat limits, no feature gates, no credit card.',
+    answer: 'The live solo-agency workflow, including proposals, onboarding and renewals — no feature gates or credit card.',
   },
   {
     question: 'What happens when paid plans launch?',
     answer:
-      'Early-access workspaces keep working. We will announce pricing ahead of time, and you choose whether a paid plan is worth it for you.',
+      'Early-access accounts keep working. We will announce any paid team plans ahead of time.',
   },
   {
-    question: 'Are the Studio and Agency prices final?',
-    answer: 'No — they are our planned prices and may change before launch. Get notified and we will share the details first.',
+    question: 'When will team pricing be available?',
+    answer: 'Team plans are not available yet. We will share pricing before they launch.',
   },
   {
     question: 'Can I leave at any time?',
@@ -434,7 +439,7 @@ export const securityPillars: Feature[] = [
     icon: Fingerprint,
     title: 'Verified identity on every request',
     description:
-      'Sign-in runs on Firebase Authentication. The API verifies your ID token on every single request before anything else happens.',
+      'Sign-in runs on Firebase Authentication. Private API routes verify your ID token; public proposal links use expiring random tokens.',
   },
   {
     icon: LockKeyhole,
@@ -515,20 +520,20 @@ export const milestones = [
   },
   {
     phase: 'Today',
-    title: 'A complete CRM',
-    description: 'Contacts, companies, pipeline, quotes, tasks, timelines, notifications and an audit trail.',
+    title: 'Agency proposal to renewal',
+    description: 'Contacts, scopes, shareable proposals, onboarding tasks, retainer health and renewal alerts.',
   },
   {
     phase: 'Next',
-    title: 'Built for retainers',
-    description: 'Renewals, client health and proposals for agencies that live on recurring work.',
+    title: 'Shared agency workspaces',
+    description: 'Membership and team permissions after solo agencies validate the workflow.',
   },
 ]
 
 export const stack = ['Next.js', 'React', 'TypeScript', 'Express', 'Prisma', 'PostgreSQL', 'Firebase Auth', 'React Query']
 
 export const productFacts = [
-  { value: '12', label: 'modules in one workspace' },
+  { value: '1', label: 'workspace from lead to renewal' },
   { value: '6', label: 'pipeline stages, drag-and-drop' },
   { value: '4', label: 'activity types on every timeline' },
   { value: '100%', label: 'of changes written to the audit trail' },

@@ -91,7 +91,7 @@ function DashboardHero({ stats, firstName }: { stats: DashboardStats; firstName:
             <span className="text-white/75">{firstName ?? 'there'}.</span>
           </h1>
           <p className="mt-5 max-w-md text-[15px] leading-relaxed text-white/85">
-            You have {plural(openDeals, 'open deal')} and {plural(stats.tasks.open, 'open task')}
+            You have {plural(openDeals, 'open opportunity')} and {plural(stats.tasks.open, 'open task')}
             {stats.tasks.overdue > 0 ? ` — ${stats.tasks.overdue} overdue` : ''}. Here&apos;s what&apos;s moving across
             your pipeline.
           </p>
@@ -115,7 +115,7 @@ function DashboardHero({ stats, firstName }: { stats: DashboardStats; firstName:
           </p>
           <div className="mt-5 flex flex-wrap gap-2 lg:justify-end">
             <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-medium ring-1 ring-inset ring-white/20">
-              {plural(openDeals, 'open deal')}
+              {plural(openDeals, 'open opportunity')}
             </span>
             <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-medium ring-1 ring-inset ring-white/20">
               {wonDeals} won · {formatCompactCurrency(stats.deals.wonValue, 'USD')}
@@ -187,13 +187,13 @@ export function DashboardPage() {
         <StatTile
           label="Won revenue"
           value={formatCompactCurrency(stats.deals.wonValue, 'USD')}
-          sub={`${plural(stats.deals.byStage.WON ?? 0, 'deal')} closed`}
+          sub={`${plural(stats.deals.byStage.WON ?? 0, 'engagement')} closed`}
           icon={Trophy}
         />
         <StatTile
           label="Avg deal size"
           value={formatCompactCurrency(stats.deals.avgDealSize, 'USD')}
-          sub={`across ${plural(stats.deals.total, 'deal')}`}
+          sub={`across ${plural(stats.deals.total, 'engagement')}`}
           icon={BarChart3}
         />
         <StatTile
@@ -222,7 +222,7 @@ export function DashboardPage() {
         </Card>
 
         <Card className="p-6 lg:col-span-2">
-          <SectionTitle title="Deals by stage" sub={`${plural(stats.deals.total, 'deal')} in total`} href="/deals" linkLabel="Board" />
+          <SectionTitle title="Pipeline by stage" sub={`${plural(stats.deals.total, 'engagement')} in total`} href="/deals" linkLabel="Board" />
           <ul className="mt-6 space-y-4">
             {DEAL_STAGES.map((stage) => {
               const count = stats.deals.byStage[stage] ?? 0
@@ -291,11 +291,11 @@ export function DashboardPage() {
         </Card>
 
         <Card className="p-6 lg:col-span-3">
-          <SectionTitle title="Recent deals" sub="The latest opportunities you created" href="/deals" />
+          <SectionTitle title="Recent engagements" sub="The latest opportunities you created" href="/deals" />
           {deals.length === 0 ? (
             <div className="mt-6 flex flex-col items-start gap-3">
               <Eyebrow>Nothing here yet</Eyebrow>
-              <p className="text-sm text-muted-foreground">Create your first deal on the Deals board.</p>
+              <p className="text-sm text-muted-foreground">Create your first engagement on the pipeline board.</p>
             </div>
           ) : (
             <ul className="mt-5 divide-y divide-border/60">
@@ -312,7 +312,7 @@ export function DashboardPage() {
                       </p>
                     </div>
                     <div className="hidden sm:block">
-                      <StatusBadge variant={deal.stage} />
+                      <StatusBadge variant={deal.stage} kind="deal" />
                     </div>
                     <p className="w-24 text-right text-sm font-semibold tabular-nums text-foreground">
                       {formatCurrency(deal.value, deal.currency)}

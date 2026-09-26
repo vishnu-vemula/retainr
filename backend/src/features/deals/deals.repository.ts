@@ -85,7 +85,7 @@ export interface IDealsRepository {
   findItemByIdAndOwner(id: string, ownerId: string): Promise<DealItemWithProduct | null>;
   updateItem(id: string, ownerId: string, input: UpdateDealItemData): Promise<DealItemWithProduct>;
   deleteItem(id: string, ownerId: string): Promise<void>;
-  sumItemTotals(dealId: string): Promise<number>;
+  sumItemTotals(dealId: string, ownerId: string): Promise<number>;
   setValue(id: string, ownerId: string, value: number): Promise<void>;
   addTemplateItems(ownerId: string, dealId: string, items: CreateDealItemData[]): Promise<DealDetail>;
   findRenewalAlerts(ownerId: string, until: Date): Promise<{ id: string; title: string; renewalDate: Date | null; renewalHealth: 'HEALTHY' | 'AT_RISK' | 'UNKNOWN' }[]>;
@@ -287,8 +287,8 @@ export class DealsRepository implements IDealsRepository {
     await this.prisma.dealItem.delete({ where: { id_ownerId: { id, ownerId } } });
   }
 
-  async sumItemTotals(dealId: string): Promise<number> {
-    const items = await this.prisma.dealItem.findMany({ where: { dealId }, select: { quantity: true, unitPrice: true } });
+  async sumItemTotals(dealId: string, ownerId: string): Promise<number> {
+    const items = await this.prisma.dealItem.findMany({ where: { dealId, ownerId }, select: { quantity: true, unitPrice: true } });
     return items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
   }
 

@@ -184,7 +184,7 @@ export function ContactDetailPage() {
                       <span className="font-medium text-foreground">{deal.title}</span>
                     </TableCell>
                     <TableCell>
-                      <StatusBadge variant={deal.stage} />
+                      <StatusBadge variant={deal.stage} kind="deal" />
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {formatCurrency(deal.value, deal.currency)}

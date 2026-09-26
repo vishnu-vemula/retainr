@@ -55,18 +55,17 @@ function Hero() {
 
         <div className="grid flex-1 items-center gap-14 px-5 pb-12 pt-28 sm:px-10 lg:grid-cols-[1.2fr_1fr] lg:px-14 lg:pt-32">
           <div>
-            <Pill tone="onRed">CRM for client-first teams</Pill>
+            <Pill tone="onRed">Built for performance-marketing agencies</Pill>
             <h1 className="mt-7 text-[2.75rem] font-medium leading-[0.98] tracking-[-0.055em] sm:text-6xl lg:text-[3.7rem] xl:text-[4.6rem]">
-              Keep every{' '}
+              Scope every{' '}
               <HeroChip icon={Handshake} className="-rotate-6 align-middle" /> client.
               <br />
-              <span className="text-white/70">Close every</span>{' '}
+              <span className="text-white/70">Renew every</span>{' '}
               <HeroChip icon={Trophy} className="rotate-6 align-middle" />
-              <span className="text-white/70"> deal.</span>
+              <span className="text-white/70"> retainer.</span>
             </h1>
             <p className="mt-7 max-w-md text-base leading-relaxed text-white/85 sm:text-lg">
-              Retainr brings contacts, companies, your pipeline, quotes and follow-ups into one calm workspace — so no
-              client relationship ever goes cold.
+              Turn agency leads into clear proposals, onboard new clients without dropped handoffs, and spot renewals before they slip.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Button asChild variant="ink" size="lg">
@@ -93,7 +92,7 @@ function Hero() {
                   <Trophy className="h-4 w-4" />
                 </span>
                 <div className="min-w-0">
-                  <p className="truncate text-[13px] font-semibold">Deal won · Analytics add-on</p>
+                  <p className="truncate text-[13px] font-semibold">Proposal accepted · Paid ads retainer</p>
                   <p className="text-xs text-muted-foreground">$39,500 · just now</p>
                 </div>
               </div>
@@ -127,10 +126,9 @@ function WhyRetainr() {
     <section className="py-20 sm:py-24">
       <Container>
         <div className="flex flex-wrap items-end justify-between gap-6">
-          <SectionHeading eyebrow="Why Retainr" title="Client-first CRM," muted="built for retention." />
+          <SectionHeading eyebrow="Why Retainr" title="From proposal" muted="to renewal." />
           <p className="max-w-sm text-[15px] leading-relaxed text-muted-foreground">
-            Most CRMs are built to log calls. Retainr is built to keep relationships moving — from the first hello to
-            the renewal.
+            Keep the scope, client handoff and renewal date together, so each account has a clear next step.
           </p>
         </div>
 
@@ -161,10 +159,10 @@ function WhyRetainr() {
 
           <div className="relative overflow-hidden rounded-[32px] border border-border/70 bg-card p-7 shadow-soft">
             <p className="max-w-xs text-[15px] leading-relaxed text-foreground">
-              Contacts, companies, deals, quotes, tasks and timelines — in one calm workspace, not twelve tabs.
+              Contacts, proposals, onboarding tasks and renewals — in one calm workspace.
             </p>
             <div className="mt-6 flex flex-wrap gap-1.5">
-              {['Contacts', 'Deals', 'Quotes', 'Tasks', 'Timeline', 'Reports'].map((label) => (
+              {['Contacts', 'Pipeline', 'Proposals', 'Tasks', 'Renewals', 'Reports'].map((label) => (
                 <span key={label} className="rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
                   {label}
                 </span>
@@ -174,10 +172,10 @@ function WhyRetainr() {
               aria-hidden="true"
               className="pointer-events-none absolute -bottom-6 right-4 select-none font-display text-[9rem] font-light leading-none tracking-[-0.06em] text-foreground/[0.06]"
             >
-              12
+              1
             </p>
             <p className="mt-10 text-sm font-semibold text-foreground">
-              12 modules <span className="font-normal text-muted-foreground">working together</span>
+              1 workspace <span className="font-normal text-muted-foreground">from scope to renewal</span>
             </p>
           </div>
 
@@ -196,7 +194,7 @@ function WhyRetainr() {
               <div>
                 <p className="text-[15px] font-semibold text-foreground">Find any client in a keystroke.</p>
                 <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                  Global search across contacts, companies and deals — from anywhere in the app.
+                  Global search across contacts, companies and engagements — from anywhere in the app.
                 </p>
               </div>
             </div>
@@ -222,7 +220,7 @@ function FeatureGrid() {
           eyebrow="Features"
           title="Everything your clients need"
           muted="to stay."
-          description="The essentials of a modern CRM, designed as one system instead of a pile of add-ons."
+          description="The agency workflow from lead to accepted scope, onboarding and renewal."
         />
         <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {coreFeatures.map(({ icon: Icon, title, description }, index) => (

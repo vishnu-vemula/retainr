@@ -28,7 +28,7 @@ export function PricingPage() {
         eyebrow="Pricing"
         title="Simple pricing."
         muted="Free while in early access."
-        description="Everything Retainr does today is free for every account. Studio and Agency plans will add retainer tooling when they launch."
+        description="Proposals, onboarding and renewals are included in early access. Studio and Agency are planned team plans, with no billing enabled yet."
       >
         <PricingPlans />
       </PageHero>

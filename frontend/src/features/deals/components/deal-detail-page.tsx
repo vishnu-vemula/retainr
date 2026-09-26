@@ -46,7 +46,7 @@ import { useProducts } from '../../products/hooks/use-products'
 import { ActivityTimeline } from '../../activities/components/activity-timeline'
 import { ActivityDialog } from '../../activities/components/activity-dialog'
 import { TagSelect } from '../../tags/components/tag-select'
-import type { DealItem } from '../../../shared/types'
+import type { DealItem, DealItemKind } from '../../../shared/types'
 
 interface LineItemRowProps {
   dealId: string
@@ -77,6 +77,14 @@ function LineItemRow({ dealId, item, currency }: LineItemRowProps) {
       <TableCell>
         <p className="font-medium text-foreground">{item.description}</p>
         {item.product ? <p className="text-xs text-muted-foreground/70">{item.product.name}</p> : null}
+        <Select value={item.kind} onValueChange={(kind) => updateMutation.mutate({ dealId, itemId: item.id, input: { kind: kind as DealItemKind } })}>
+          <SelectTrigger className="mt-2 w-40"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="BASE">Included</SelectItem>
+            <SelectItem value="PACKAGE">Package choice</SelectItem>
+            <SelectItem value="ADD_ON">Optional add-on</SelectItem>
+          </SelectContent>
+        </Select>
       </TableCell>
       <TableCell>
         <Input
@@ -253,7 +261,7 @@ export function DealDetailPage() {
   if (isLoading || !deal) {
     return (
       <div>
-        <DetailHeader backTo="/deals" backLabel="Deals" title="Deal" />
+        <DetailHeader backTo="/deals" backLabel="Pipeline" title="Engagement" />
         <SkeletonList count={5} />
       </div>
     )
@@ -275,7 +283,7 @@ export function DealDetailPage() {
     <div className="space-y-6">
       <DetailHeader
         backTo="/deals"
-        backLabel="Deals"
+        backLabel="Pipeline"
         title={deal.title}
         subtitle={`${formatCurrency(deal.value, deal.currency)} · ${deal.contact?.name ?? 'No contact'}${
           deal.company ? ` · ${deal.company.name}` : ''
@@ -288,7 +296,7 @@ export function DealDetailPage() {
             </Button>
             <Button type="button" onClick={() => setEditOpen(true)}>
               <Pencil className="h-4 w-4" />
-              Edit deal
+              Edit engagement
             </Button>
           </>
         }
@@ -417,7 +425,7 @@ export function DealDetailPage() {
 
       <Card className="overflow-hidden">
         <CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
-          <div><CardTitle>Line items</CardTitle><CardDescription>Deal value syncs automatically when items change.</CardDescription></div>
+          <div><CardTitle>Line items</CardTitle><CardDescription>Quote value updates when items change.</CardDescription></div>
           <div className="flex flex-wrap items-center gap-2">
             <Select value={templateId} onValueChange={(value) => setTemplateId(value as DealTemplateId)}>
               <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>

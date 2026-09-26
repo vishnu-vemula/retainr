@@ -30,6 +30,11 @@ const DEFAULT_PROBABILITY: Record<DealStage, number> = {
   LOST: 0
 };
 
+const STAGE_LABEL: Record<DealStage, string> = {
+  NEW: 'Lead', QUALIFIED: 'Discovery', PROPOSAL: 'Scope sent',
+  NEGOTIATION: 'Client review', WON: 'Won', LOST: 'Lost'
+};
+
 export class DealsService {
   constructor(
     private readonly repo: IDealsRepository,
@@ -65,6 +70,7 @@ export class DealsService {
   }
 
   async create(ownerId: string, input: CreateDealInput): Promise<DealWithRelations> {
+    this.assertRenewalDates(input.serviceStartDate ?? null, input.renewalDate ?? null);
     await this.assertRelationsOwned(ownerId, input.contactId ?? null, input.companyId ?? null);
     const stage = input.stage ?? 'NEW';
     const maxPosition = await this.repo.maxPositionInStage(ownerId, stage);
@@ -75,7 +81,7 @@ export class DealsService {
       probability: input.probability ?? DEFAULT_PROBABILITY[stage],
       position: maxPosition + 1
     });
-    await this.audit.log(ownerId, 'CREATE', 'DEAL', deal.id, `Created deal "${deal.title}" (${deal.value} ${deal.currency})`);
+    await this.audit.log(ownerId, 'CREATE', 'DEAL', deal.id, `Created engagement "${deal.title}" (${deal.value} ${deal.currency})`);
     if (stage === 'WON') {
       await this.onboarding.createForWonDeal(ownerId, deal.id, deal.contactId);
       await this.notifyWon(ownerId, deal);
@@ -85,6 +91,7 @@ export class DealsService {
 
   async update(ownerId: string, id: string, input: UpdateDealInput): Promise<DealWithRelations> {
     const existing = await this.get(ownerId, id);
+    this.assertRenewalDates(input.serviceStartDate === undefined ? existing.serviceStartDate : input.serviceStartDate, input.renewalDate === undefined ? existing.renewalDate : input.renewalDate);
     if (input.contactId !== undefined || input.companyId !== undefined) {
       await this.assertRelationsOwned(ownerId, input.contactId ?? null, input.companyId ?? null);
     }
@@ -98,9 +105,9 @@ export class DealsService {
       patch.lostReason = input.lostReason ?? existing.lostReason;
     }
     const updated = await this.repo.update(id, ownerId, patch);
-    await this.audit.log(ownerId, 'UPDATE', 'DEAL', id, `Updated deal "${updated.title}"`);
+    await this.audit.log(ownerId, 'UPDATE', 'DEAL', id, `Updated engagement "${updated.title}"`);
     if (stageChanged && nextStage !== undefined) {
-      await this.audit.log(ownerId, 'STAGE_CHANGE', 'DEAL', id, `${existing.stage} → ${nextStage}`);
+      await this.audit.log(ownerId, 'STAGE_CHANGE', 'DEAL', id, `${STAGE_LABEL[existing.stage]} → ${STAGE_LABEL[nextStage]}`);
       if (nextStage === 'WON') {
         await this.onboarding.createForWonDeal(ownerId, updated.id, updated.contactId);
         await this.notifyWon(ownerId, updated);
@@ -114,7 +121,7 @@ export class DealsService {
   async delete(ownerId: string, id: string): Promise<void> {
     const deal = await this.get(ownerId, id);
     await this.repo.delete(id, ownerId);
-    await this.audit.log(ownerId, 'DELETE', 'DEAL', id, `Deleted deal "${deal.title}"`);
+    await this.audit.log(ownerId, 'DELETE', 'DEAL', id, `Deleted engagement "${deal.title}"`);
   }
 
   async setTags(ownerId: string, id: string, input: SetDealTagsInput): Promise<DealWithRelations> {
@@ -149,10 +156,10 @@ export class DealsService {
       const deal = reorderedById.get(update.id) ?? existing;
       if (!existing || !deal) continue;
       if (existing.stage === update.stage) {
-        await this.audit.log(ownerId, 'UPDATE', 'DEAL', update.id, `Reordered "${deal.title}" in ${update.stage}`);
+        await this.audit.log(ownerId, 'UPDATE', 'DEAL', update.id, `Reordered "${deal.title}" in ${STAGE_LABEL[update.stage]}`);
         continue;
       }
-      await this.audit.log(ownerId, 'STAGE_CHANGE', 'DEAL', update.id, `${existing.stage} → ${update.stage}`);
+      await this.audit.log(ownerId, 'STAGE_CHANGE', 'DEAL', update.id, `${STAGE_LABEL[existing.stage]} → ${STAGE_LABEL[update.stage]}`);
       if (update.stage === 'WON') {
         await this.onboarding.createForWonDeal(ownerId, deal.id, deal.contactId);
         await this.notifyWon(ownerId, deal);
@@ -206,7 +213,7 @@ export class DealsService {
   }
 
   private async recalcValueFromItems(ownerId: string, dealId: string): Promise<void> {
-    const total = await this.repo.sumItemTotals(dealId);
+    const total = await this.repo.sumItemTotals(dealId, ownerId);
     await this.repo.setValue(dealId, ownerId, total);
   }
 
@@ -227,10 +234,16 @@ export class DealsService {
     if (!owned) throw AppError.notFound('Product');
   }
 
+  private assertRenewalDates(serviceStartDate: Date | null, renewalDate: Date | null): void {
+    if (serviceStartDate && renewalDate && renewalDate <= serviceStartDate) {
+      throw new AppError(422, 'INVALID_RENEWAL_DATE', 'Renewal date must be after the service start date');
+    }
+  }
+
   private notifyWon(ownerId: string, deal: DealWithRelations): Promise<void> {
     return this.notifications.dispatch(ownerId, {
       type: 'DEAL_WON',
-      title: `Deal won: ${deal.title}`,
+      title: `Engagement won: ${deal.title}`,
       body: `${deal.value} ${deal.currency}`,
       dedupeKey: `deal-won:${deal.id}`
     });

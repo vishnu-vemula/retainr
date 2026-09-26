@@ -11,7 +11,7 @@ const interTight = Inter_Tight({ subsets: ['latin'], variable: '--font-display',
 export const metadata: Metadata = {
   title: { default: 'Retainr', template: '%s · Retainr' },
   description:
-    'Retainr brings contacts, companies, your deal pipeline, quotes and follow-ups into one calm workspace for client-first teams.',
+    'Retainr helps performance-marketing agencies scope proposals, onboard clients, and stay ahead of retainer renewals.',
   icons: { icon: '/favicon.svg' },
 }
 

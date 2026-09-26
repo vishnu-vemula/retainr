@@ -1,56 +1,15 @@
 'use client'
-
-import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowUpRight, Check } from 'lucide-react'
 import { Button } from '../../../shared/components/ui/button'
 import { cn } from '../../../shared/lib/utils'
 import { plans } from '../model/content'
 
-const ANNUAL_DISCOUNT = 0.2
-
 export function PricingPlans() {
-  const [annual, setAnnual] = useState(true)
-
   return (
     <div>
-      <div className="flex justify-center">
-        <div role="radiogroup" aria-label="Billing period" className="inline-flex rounded-full border border-border/70 bg-card p-1 shadow-sm">
-          {[
-            { value: false, label: 'Monthly' },
-            { value: true, label: 'Annual' },
-          ].map((option) => (
-            <button
-              key={option.label}
-              type="button"
-              role="radio"
-              aria-checked={annual === option.value}
-              onClick={() => setAnnual(option.value)}
-              className={cn(
-                'flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium transition-all',
-                annual === option.value ? 'bg-ink text-white shadow-sm' : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {option.label}
-              {option.value ? (
-                <span
-                  className={cn(
-                    'rounded-full px-2 py-0.5 text-[10px] font-semibold',
-                    annual ? 'bg-primary text-primary-foreground' : 'bg-accent text-accent-foreground',
-                  )}
-                >
-                  −20%
-                </span>
-              ) : null}
-            </button>
-          ))}
-        </div>
-      </div>
-
       <div className="mt-12 grid gap-4 lg:grid-cols-3">
         {plans.map((plan) => {
-          const price =
-            plan.monthly === null ? null : annual ? Math.round(plan.monthly * (1 - ANNUAL_DISCOUNT)) : plan.monthly
           return (
             <article
               key={plan.name}
@@ -88,13 +47,13 @@ export function PricingPlans() {
                 {plan.description}
               </p>
               <p className={cn('mt-8 flex items-end gap-2', plan.highlighted ? 'text-white' : 'text-foreground')}>
-                <span className="text-6xl font-light tracking-[-0.06em]">${price ?? '—'}</span>
+                <span className="text-6xl font-light tracking-[-0.06em]">{plan.monthly === null ? 'TBD' : `$${plan.monthly}`}</span>
                 <span className={cn('pb-2 text-sm', plan.highlighted ? 'text-white/75' : 'text-muted-foreground')}>
-                  / seat / month
+                  {plan.monthly === null ? 'team pricing' : 'during early access'}
                 </span>
               </p>
               <p className={cn('mt-1 h-5 text-xs', plan.highlighted ? 'text-white/75' : 'text-muted-foreground')}>
-                {plan.status === 'soon' ? `Planned price${annual ? ', billed annually' : ''}` : 'No credit card required'}
+                {plan.status === 'soon' ? 'No billing enabled yet' : 'No credit card required'}
               </p>
               <Button
                 asChild

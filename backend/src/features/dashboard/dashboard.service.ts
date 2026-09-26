@@ -142,13 +142,13 @@ export class DashboardService {
         }
       }),
       this.prisma.task.findMany({
-        where: { ownerId, onboardingKey: { not: null }, status: { not: 'DONE' }, dueDate: { lt: now } },
+        where: { ownerId, onboardingKey: { not: null }, deal: { ownerId, stage: 'WON' }, status: { not: 'DONE' }, dueDate: { lt: now } },
         select: { id: true, title: true, dealId: true, dueDate: true },
         orderBy: { dueDate: 'asc' }, take: 20
       }),
-      this.prisma.task.count({ where: { ownerId, onboardingKey: { not: null }, status: { not: 'DONE' }, dueDate: { lt: now } } }),
+      this.prisma.task.count({ where: { ownerId, onboardingKey: { not: null }, deal: { ownerId, stage: 'WON' }, status: { not: 'DONE' }, dueDate: { lt: now } } }),
       this.prisma.task.findMany({
-        where: { ownerId, onboardingKey: { not: null }, deal: { stage: 'WON' } },
+        where: { ownerId, onboardingKey: { not: null }, deal: { ownerId, stage: 'WON' } },
         select: { dealId: true, status: true, completedAt: true, deal: { select: { closedAt: true } } }
       }),
       this.prisma.proposal.findMany({
@@ -202,7 +202,7 @@ export class DashboardService {
       list.push(task);
       onboardingByDeal.set(task.dealId, list);
     }
-    const onboardingDurations = [...onboardingByDeal.values()].filter((tasks) => tasks.every((task) => task.status === 'DONE' && task.completedAt) && tasks[0]?.deal?.closedAt)
+    const onboardingDurations = [...onboardingByDeal.values()].filter((tasks) => tasks.length === 5 && tasks.every((task) => task.status === 'DONE' && task.completedAt) && tasks[0]?.deal?.closedAt)
       .map((tasks) => (Math.max(...tasks.map((task) => task.completedAt?.getTime() ?? 0)) - (tasks[0]?.deal?.closedAt?.getTime() ?? 0)) / 86_400_000);
     const proposalDurations = acceptedProposals.filter((proposal) => proposal.respondedAt)
       .map((proposal) => ((proposal.respondedAt?.getTime() ?? 0) - proposal.deal.createdAt.getTime()) / 86_400_000);

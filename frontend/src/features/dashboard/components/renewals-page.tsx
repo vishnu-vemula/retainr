@@ -17,8 +17,8 @@ export function RenewalsPage() {
       <PageHeader eyebrow="Account health" title="Renewals" description="Keep retainers, client reviews, and onboarding handoffs on track." action={<Button type="button" variant="outline" disabled={isRefetching} onClick={() => void refetch()}><RefreshCw className="h-4 w-4" />Refresh</Button>} />
       {isLoading || !renewals ? <p className="text-sm text-muted-foreground">Loading renewals…</p> : <>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {[['30 days', renewals.within30], ['60 days', renewals.within60], ['90 days', renewals.within90], ['Missed', renewals.missed]].map(([label, count]) => (
-            <Card key={label} className="p-5"><p className="text-sm text-muted-foreground">Renewing in {label}</p><p className="mt-3 font-display text-3xl font-semibold">{count}</p></Card>
+          {[['Due in 30 days', renewals.within30], ['Due in 60 days', renewals.within60], ['Due in 90 days', renewals.within90], ['Missed renewals', renewals.missed]].map(([label, count]) => (
+            <Card key={label} className="p-5"><p className="text-sm text-muted-foreground">{label}</p><p className="mt-3 font-display text-3xl font-semibold">{count}</p></Card>
           ))}
         </div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -44,7 +44,7 @@ export function RenewalsPage() {
             <tr key={deal.id}><td className="py-3"><Link href={`/deals/${deal.id}`} className="font-medium text-primary hover:underline">{deal.companyName ?? deal.title}</Link><span className="block text-xs text-muted-foreground">{deal.title}</span></td><td className="py-3">{deal.accountHealth.toLowerCase()} · {deal.renewalHealth.toLowerCase().replace('_', ' ')}</td><td className="py-3">{deal.daysSinceActivity} days ago</td><td className="py-3">{formatDate(deal.renewalDate)}</td><td className="py-3 text-right">{formatCurrency(deal.monthlyRecurringValue, deal.currency)}</td></tr>
           ))}</tbody></table></div>}
         </Card>
-        <Card className="p-6"><h2 className="font-display text-xl font-semibold">Operating metrics</h2><div className="mt-4 grid gap-4 text-sm sm:grid-cols-3"><p>Lead to accepted proposal <strong className="block text-lg">{stats?.operations.averageLeadToAcceptedDays === null ? '—' : `${stats?.operations.averageLeadToAcceptedDays.toFixed(1)} days`}</strong></p><p>Onboarding completion <strong className="block text-lg">{stats?.operations.averageOnboardingDays === null ? '—' : `${stats?.operations.averageOnboardingDays.toFixed(1)} days`}</strong></p><p>Owner active this week <strong className="block text-lg">{stats?.operations.activeThisWeek ? 'Yes' : 'No'}</strong></p></div></Card>
+        <Card className="p-6"><h2 className="font-display text-xl font-semibold">Operating metrics</h2><div className="mt-4 grid gap-4 text-sm sm:grid-cols-3"><p>Lead to accepted proposal <strong className="block text-lg">{stats.operations.averageLeadToAcceptedDays === null ? '—' : `${stats.operations.averageLeadToAcceptedDays.toFixed(1)} days`}</strong></p><p>Onboarding completion <strong className="block text-lg">{stats.operations.averageOnboardingDays === null ? '—' : `${stats.operations.averageOnboardingDays.toFixed(1)} days`}</strong></p><p>Owner active this week <strong className="block text-lg">{stats.operations.activeThisWeek ? 'Yes' : 'No'}</strong></p></div></Card>
       </>}
     </div>
   )

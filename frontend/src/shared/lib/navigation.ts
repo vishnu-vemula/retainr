@@ -26,7 +26,7 @@ export const workspaceNav: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/contacts', label: 'Contacts', icon: UsersRound },
   { to: '/companies', label: 'Companies', icon: Building2 },
-  { to: '/deals', label: 'Deals', icon: KanbanSquare },
+  { to: '/deals', label: 'Pipeline', icon: KanbanSquare },
   { to: '/renewals', label: 'Renewals', icon: CalendarClock },
   { to: '/tasks', label: 'Tasks', icon: ListChecks },
   { to: '/activities', label: 'Activities', icon: MessagesSquare },

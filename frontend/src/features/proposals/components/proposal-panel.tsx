@@ -28,7 +28,7 @@ export function ProposalPanel({ dealId, hasItems }: { dealId: string; hasItems: 
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between space-y-0">
-        <div><CardTitle>Proposals</CardTitle><CardDescription>Share a read-only snapshot of the quote.</CardDescription></div>
+        <div><CardTitle>Proposals</CardTitle><CardDescription>Share a quote snapshot. Anyone with the link can view and respond until it expires.</CardDescription></div>
         <Button type="button" disabled={!hasItems || create.isPending} onClick={() => void createLink()}>Create share link</Button>
       </CardHeader>
       <CardContent className="space-y-4">

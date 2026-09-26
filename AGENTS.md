@@ -43,6 +43,7 @@ Operating manual for AI coding agents (opencode, Claude Code, Copilot Workspace,
 |------|-------|---------|
 | Run backend | `backend/` | `npm run dev` (port 4000; needs `.env` — copy `.env.example`) |
 | Migrate DB | `backend/` | `npx prisma migrate dev --name <change>` |
+| Deploy migrations | `backend/` | `npx prisma migrate deploy` |
 | Seed demo data | `backend/` | `npm run db:seed` (reads `SEED_OWNER_UID`) |
 | Backend checks | `backend/` | `npm run typecheck`, `npm run lint`, `npm test` / `npm run test:unit`, `npm run build` |
 | Backend integration | `backend/` | `npm run test:integration` / `npm run test:e2e` — needs a scratch Postgres on :5434 (see `tests/setup-env.ts`) plus `npx prisma migrate dev` against it |
@@ -84,7 +85,7 @@ Running the app requires PostgreSQL and Firebase credentials (see README "Gettin
 
 - **Role changes need a token refresh.** `PATCH /users/:id/role` sets a Firebase custom claim + DB row; the affected user's authorization only updates after their next ID-token refresh (frontend refreshes on reload/re-login — tell users to re-login).
 - **`BOOTSTRAP_ADMIN_EMAILS` promotes on login only** — it can't demote; remove a user from the list and change their role in the admin UI instead.
-- **Seed ownership** — `npm run db:seed` assigns everything to `SEED_OWNER_UID` (placeholder default). Re-run it with your real UID or you'll see an empty CRM.
+- **Seed ownership** — `npm run db:seed` replaces all CRM rows owned by `SEED_OWNER_UID` (placeholder default). Use a demo UID; run it with your UID only if you intend to replace that account's data.
 - **Firebase private key escaping** — `FIREBASE_PRIVATE_KEY` must keep `\n` escapes; prefer the single-line `FIREBASE_SERVICE_ACCOUNT_KEY` JSON on Render/Heroku-style deploys.
 - **`FIREBASE_SERVICE_ACCOUNT_KEY` beats discrete vars** which beat `GOOGLE_APPLICATION_CREDENTIALS` (ADC). Exactly one mechanism is needed or every request 401s/500s at startup.
 - **Compound uniques** — Contact/Company/Deal/Task update/delete use `id_ownerId` compound keys (`@@unique([id, ownerId])` in schema). Preserve them; they enforce ownership at the DB layer.

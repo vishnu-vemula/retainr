@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2 } from 'lucide-react'
 import { Dialog } from '../../../shared/components/dialog'
@@ -106,15 +106,14 @@ export function DealDialog({ deal, defaultStage, onClose }: DealDialogProps) {
     handleSubmit,
     control,
     setValue,
-    watch,
     formState: { errors, dirtyFields },
   } = useForm<DealFormValues>({
     resolver: zodResolver(dealFormSchema),
     values: deal ? toFormValues(deal) : { ...toFormValues(null), stage: defaultStage ?? 'NEW', probability: stageProbability[defaultStage ?? 'NEW'] },
   })
 
-  const stage = watch('stage')
-  const engagementType = watch('engagementType')
+  const stage = useWatch({ control, name: 'stage' })
+  const engagementType = useWatch({ control, name: 'engagementType' })
 
   const onSubmit = handleSubmit(async (values) => {
     const input = {
@@ -158,7 +157,7 @@ export function DealDialog({ deal, defaultStage, onClose }: DealDialogProps) {
     createMutation.isPending || updateMutation.isPending || setTagsMutation.isPending
 
   return (
-    <Dialog title={deal ? 'Edit deal' : 'New deal'} onClose={onClose}>
+    <Dialog title={deal ? 'Edit engagement' : 'New engagement'} onClose={onClose}>
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="deal-title">Title</Label>
@@ -393,7 +392,7 @@ export function DealDialog({ deal, defaultStage, onClose }: DealDialogProps) {
         <div className="flex items-center justify-between gap-2 pt-2">
           {deal ? (
             <ConfirmButton
-              label="Delete deal"
+              label="Delete engagement"
               onConfirm={() => {
                 deleteMutation.mutate(deal.id)
                 onClose()
@@ -408,7 +407,7 @@ export function DealDialog({ deal, defaultStage, onClose }: DealDialogProps) {
             </Button>
             <Button type="submit" disabled={submitting}>
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              {submitting ? 'Saving…' : 'Save deal'}
+              {submitting ? 'Saving…' : 'Save engagement'}
             </Button>
           </div>
         </div>
