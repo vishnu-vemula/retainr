@@ -89,12 +89,17 @@ const config = {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-6px)' },
         },
+        marquee: {
+          from: { transform: 'translateX(0)' },
+          to: { transform: 'translateX(-100%)' },
+        },
       },
       animation: {
         'fade-in': 'fade-in 0.2s ease-out',
         'fade-in-up': 'fade-in-up 0.35s ease-out',
         'slide-down': 'slide-down 0.2s ease-out',
         float: 'float 6s ease-in-out infinite',
+        marquee: 'marquee 40s linear infinite',
       },
     },
   },

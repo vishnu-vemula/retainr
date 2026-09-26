@@ -11,7 +11,7 @@ export default function UsersRoute() {
   const router = useRouter()
 
   useEffect(() => {
-    if (!loading && role !== 'ADMIN') router.replace('/')
+    if (!loading && role !== 'ADMIN') router.replace('/dashboard')
   }, [loading, role, router])
 
   if (loading || role !== 'ADMIN') return <FullPageSpinner />

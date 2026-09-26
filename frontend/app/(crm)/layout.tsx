@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, type ReactNode } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/src/features/auth/use-auth'
 import { FirebaseSetupNotice } from '@/src/features/auth/components/firebase-setup-notice'
 import { AppShell } from '@/src/shared/components/app-shell'
@@ -10,21 +11,21 @@ import { FullPageSpinner } from '@/src/shared/components/full-page-spinner'
 export default function CrmLayout({ children }: { children: ReactNode }) {
   const { firebaseUser, loading, configError } = useAuth()
   const router = useRouter()
-  const pathname = usePathname()
 
   useEffect(() => {
-    if (!loading && !firebaseUser && pathname !== '/') router.replace('/login')
-  }, [firebaseUser, loading, pathname, router])
+    if (!loading && !firebaseUser && !configError) router.replace('/login')
+  }, [configError, firebaseUser, loading, router])
 
-  if (configError && pathname !== '/') {
+  if (configError) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-background p-4">
         <FirebaseSetupNotice error={configError} />
+        <Link href="/" className="text-sm font-semibold text-primary underline-offset-4 hover:underline">
+          ← Back to the website
+        </Link>
       </div>
     )
   }
-
-  if (pathname === '/' && !firebaseUser) return children
 
   if (loading || !firebaseUser) return <FullPageSpinner />
 

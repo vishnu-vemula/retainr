@@ -7,7 +7,7 @@ interface FirebaseSetupNoticeProps {
 
 export function FirebaseSetupNotice({ error }: FirebaseSetupNoticeProps) {
   return (
-    <Card className="w-full max-w-md border-amber-200 bg-amber-50/50 shadow-lg shadow-slate-200/50">
+    <Card className="w-full max-w-md border-amber-200 bg-amber-50/50 shadow-soft">
       <CardHeader className="items-center pb-0">
         <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-amber-100">
           <AlertTriangle className="h-6 w-6 text-amber-600" />

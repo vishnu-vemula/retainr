@@ -9,8 +9,9 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'sw
 const interTight = Inter_Tight({ subsets: ['latin'], variable: '--font-display', display: 'swap' })
 
 export const metadata: Metadata = {
-  title: 'Ultra Tasker',
-  description: 'Production-grade CRM for contacts, companies, deals, tasks and more.',
+  title: { default: 'Retainr', template: '%s · Retainr' },
+  description:
+    'Retainr brings contacts, companies, your deal pipeline, quotes and follow-ups into one calm workspace for client-first teams.',
   icons: { icon: '/favicon.svg' },
 }
 

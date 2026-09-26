@@ -12,14 +12,23 @@ export function LoginPage() {
   const router = useRouter()
 
   useEffect(() => {
-    if (!loading && firebaseUser) router.replace('/')
+    if (!loading && firebaseUser) router.replace('/dashboard')
   }, [firebaseUser, loading, router])
 
   if (configError) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <AuthLayout
+        eyebrow="Sign in"
+        title="Sign-in isn't set up yet"
+        description="This deployment is missing its Firebase configuration, so accounts can't be created or used yet."
+        footer={
+          <Link href="/" className="font-semibold text-primary underline-offset-4 hover:underline">
+            ← Back to the website
+          </Link>
+        }
+      >
         <FirebaseSetupNotice error={configError} />
-      </div>
+      </AuthLayout>
     )
   }
 

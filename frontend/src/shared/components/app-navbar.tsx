@@ -135,7 +135,7 @@ export function AppNavbar() {
             {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
           <Link
-            href="/"
+            href="/dashboard"
             className="rounded-xl pr-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             aria-label="Retainr home"
           >

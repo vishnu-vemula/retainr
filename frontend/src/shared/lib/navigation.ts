@@ -19,7 +19,7 @@ export interface NavItem {
 }
 
 export const workspaceNav: NavItem[] = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/contacts', label: 'Contacts', icon: UsersRound },
   { to: '/companies', label: 'Companies', icon: Building2 },
   { to: '/deals', label: 'Deals', icon: KanbanSquare },
