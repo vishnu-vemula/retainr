@@ -3,20 +3,21 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/src/shared/lib/utils'
 
 const badgeVariants = cva(
-  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+  'inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
   {
     variants: {
       variant: {
-        default: 'border-transparent bg-primary text-primary-foreground shadow',
-        secondary: 'border-transparent bg-secondary text-secondary-foreground',
-        destructive: 'border-transparent bg-destructive text-destructive-foreground shadow',
-        outline: 'text-foreground',
-        success: 'border-transparent bg-emerald-100 text-emerald-700',
-        info: 'border-transparent bg-blue-100 text-blue-700',
-        warning: 'border-transparent bg-amber-100 text-amber-700',
-        danger: 'border-transparent bg-rose-100 text-rose-700',
-        violet: 'border-transparent bg-violet-100 text-violet-700',
-        muted: 'border-transparent bg-slate-100 text-slate-600',
+        default: 'bg-primary text-primary-foreground ring-transparent',
+        secondary: 'bg-secondary text-secondary-foreground ring-transparent',
+        destructive: 'bg-destructive text-destructive-foreground ring-transparent',
+        outline: 'bg-card text-foreground ring-border',
+        brand: 'bg-brand-50 text-brand-700 ring-brand-600/20',
+        success: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+        info: 'bg-sky-50 text-sky-700 ring-sky-600/20',
+        warning: 'bg-amber-50 text-amber-700 ring-amber-600/25',
+        danger: 'bg-rose-50 text-rose-700 ring-rose-600/20',
+        violet: 'bg-violet-50 text-violet-700 ring-violet-600/20',
+        muted: 'bg-stone-100 text-stone-600 ring-stone-500/15',
       },
     },
     defaultVariants: {

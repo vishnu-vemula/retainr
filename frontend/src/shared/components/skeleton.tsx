@@ -18,7 +18,7 @@ export function SkeletonList({ count = 4 }: { count?: number }) {
   return (
     <div className="space-y-2">
       {Array.from({ length: count }, (_, index) => (
-        <Card key={index} className="animate-pulse">
+        <Card key={index} className="animate-pulse rounded-2xl">
           <div className="flex items-center gap-4 p-4">
             <Skeleton className="h-9 w-9 rounded-full" />
             <div className="flex-1 space-y-2">

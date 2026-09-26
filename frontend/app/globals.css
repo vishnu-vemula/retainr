@@ -1,28 +1,40 @@
 @tailwind base;
+@tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222.2 47.4% 11.2%;
+    --background: 24 18% 96%;
+    --foreground: 12 20% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 47.4% 11.2%;
+    --card-foreground: 12 20% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 47.4% 11.2%;
-    --primary: 243 75% 59%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 226 100% 97%;
-    --accent-foreground: 243 75% 45%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 243 75% 59%;
-    --radius: 0.5rem;
+    --popover-foreground: 12 20% 10%;
+    --primary: 9 88% 52%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 20 18% 92.5%;
+    --secondary-foreground: 12 20% 10%;
+    --muted: 20 18% 93.5%;
+    --muted-foreground: 12 7% 40%;
+    --accent: 12 100% 96%;
+    --accent-foreground: 9 80% 40%;
+    --destructive: 352 76% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 20 16% 88%;
+    --input: 20 14% 84%;
+    --ring: 9 88% 52%;
+    --ink: 12 22% 9%;
+    --ink-foreground: 0 0% 100%;
+    --radius: 0.875rem;
+
+    --toastify-font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    --toastify-color-success: #059669;
+    --toastify-color-error: hsl(352 76% 45%);
+    --toastify-color-warning: #d97706;
+    --toastify-color-info: hsl(9 88% 52%);
+    --toastify-color-progress-light: linear-gradient(90deg, #fb6d4b, #f03919);
+    --toastify-toast-bd-radius: 16px;
+    --toastify-text-color-light: hsl(12 20% 10%);
   }
 }
 
@@ -30,8 +42,33 @@
   * {
     @apply border-border;
   }
+  html {
+    scroll-behavior: smooth;
+  }
   body {
     @apply bg-background text-foreground antialiased;
+    background-image: radial-gradient(
+      1100px 420px at 50% -220px,
+      hsl(var(--primary) / 0.1),
+      transparent 70%
+    );
+    background-repeat: no-repeat;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  ::selection {
+    background: hsl(var(--primary) / 0.18);
+    color: hsl(var(--foreground));
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
+  }
+}
+
+@layer components {
+  .Toastify__toast {
+    @apply border border-border/70 shadow-lift;
   }
 }
 
@@ -41,9 +78,20 @@
     height: 6px;
   }
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-slate-300;
+    @apply rounded-full bg-foreground/15;
   }
   .scrollbar-thin::-webkit-scrollbar-track {
     background: transparent;
+  }
+  .bg-hero {
+    background-color: #f03919;
+    background-image:
+      radial-gradient(90% 120% at 100% 0%, rgb(255 140 100 / 0.55), transparent 55%),
+      radial-gradient(70% 90% at 0% 100%, rgb(150 20 5 / 0.55), transparent 60%),
+      linear-gradient(135deg, #f5501f 0%, #e8340f 55%, #c9260b 100%);
+  }
+  .text-outline-white {
+    color: transparent;
+    -webkit-text-stroke: 1px rgb(255 255 255 / 0.22);
   }
 }
