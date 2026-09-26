@@ -170,6 +170,7 @@ export function ProductsPage() {
   return (
     <div>
       <PageHeader
+        eyebrow="Settings"
         title="Products"
         description="Catalog items you can attach to deal line items"
         action={

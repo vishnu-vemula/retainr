@@ -79,6 +79,7 @@ export function ContactsPage() {
   return (
     <div>
       <PageHeader
+        eyebrow="People"
         title="Contacts"
         description="Manage the people in your pipeline"
         action={
