@@ -1,6 +1,6 @@
-# Ultra Tasker
+# Retainr
 
-![Ultra Tasker](images/banner.svg)
+![Retainr](images/banner.svg)
 
 A production-grade CRM built on a typed, feature-based stack: **contacts, companies, a drag-and-drop deal pipeline with quote builder, tasks, activity timelines, tags, notifications, an audit trail, and a KPI dashboard** — with Firebase Authentication and Prisma + PostgreSQL.
 
@@ -8,18 +8,28 @@ A production-grade CRM built on a typed, feature-based stack: **contacts, compan
 
 ## Screenshots
 
-Light, warm-neutral UI with a red-orange accent: floating pill navbar, display typography, soft rounded cards and a full site footer.
+A light, warm-neutral UI with a red-orange accent. The public website uses big display typography and red hero panels; the workspace uses a floating sidebar.
+
+**Website** — `/`, `/features`, `/pricing`, `/security`, `/about`, `/contact`
 
 | | |
 |---|---|
-| ![Dashboard](images/dashboard.png) | ![Deal pipeline](images/deals.png) |
-| ![Contacts](images/contacts.png) | ![Deal detail with quote builder](images/deal-detail.png) |
-| ![Login](images/login.png) | ![Signup](images/signup.png) |
+| ![Home](images/website.png) | ![Pricing](images/pricing.png) |
+| ![Features](images/features.png) | ![Login](images/login.png) |
 
-![Mobile — login, dashboard and navigation menu](images/mobile.png)
+**Workspace** — sidebar navigation, no top bar
+
+| | |
+|---|---|
+| ![Dashboard](images/dashboard.png) | ![Reports](images/reports.png) |
+| ![Deal pipeline](images/deals.png) | ![Activities](images/activities.png) |
+| ![Contacts](images/contacts.png) | ![Deal detail with quote builder](images/deal-detail.png) |
+
+![Mobile — website, dashboard and sidebar](images/mobile.png)
 
 ## Features
 
+- **Public website** — home, features, pricing, security, about and contact pages (server-rendered, SEO metadata); works even before Firebase is configured
 - **Auth** — Firebase Authentication (email/password + Google OAuth); the API verifies Bearer ID tokens on every request; ADMIN/MEMBER roles via custom claims
 - **Contacts** — CRUD with statuses, sources, company links, tags, search + pagination, CSV export
 - **Companies** — profiles with industry, size, revenue; detail view with contacts and deals
@@ -31,7 +41,10 @@ Light, warm-neutral UI with a red-orange accent: floating pill navbar, display t
 - **Notifications** — in-app bell with unread count; deal-won alerts and overdue-task reminders (deduped)
 - **Audit trail** — every create/update/delete/stage-change recorded per record, visible on detail pages
 - **Global search** — one box across contacts, companies and deals
-- **Dashboard** — pipeline value, won value, avg deal size, 6-month revenue trend, stage distribution, top companies, task health
+- **Dashboard** — pipeline value, won value, avg deal size, 6-month revenue trend, stage distribution, top companies, tasks due soon, recent activity
+- **Reports** — win rate, revenue trend, pipeline by stage, contact mix, task health and top companies
+- **Activity feed** — every call, email, meeting and note across the workspace, grouped by day and filterable by type
+- **Account** — profile, role, sign-in method, password reset and sign-out
 - **User management** — ADMINs can list users and change roles
 - **Production hygiene** — Helmet, CORS allow-list, rate limiting, compression, Pino structured logs, validation, error envelope, graceful shutdown
 
@@ -126,7 +139,7 @@ Sign up in the app with an email listed in `BOOTSTRAP_ADMIN_EMAILS` — you'll g
 | `npm run typecheck` | both | `tsc --noEmit` |
 | `npm run lint` | both | ESLint |
 | `npm test` / `npm run test:unit` | `backend` | Vitest unit tests with fake repositories (no DB needed) |
-| `npm run test:integration` / `npm run test:e2e` | `backend` | Database-backed API integration tests — needs a scratch Postgres: `docker run -d --name ultra-tasker-pg -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=ultra_tasker -p 5434:5432 postgres:16-alpine` then `npx prisma migrate dev` |
+| `npm run test:integration` / `npm run test:e2e` | `backend` | Database-backed API integration tests — needs a scratch Postgres: `docker run -d --name retainr-pg -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=ultra_tasker -p 5434:5432 postgres:16-alpine` then `npx prisma migrate dev` |
 | `npm run test:regression` | `backend` | Regression tests for critical route ordering and owner-isolation boundaries (uses the same scratch Postgres) |
 | `npx prisma migrate dev` | `backend` | Apply schema changes |
 | `npm run db:seed` | `backend` | Demo data |
@@ -185,8 +198,9 @@ Base URL: `/api/v1` · Auth: `Authorization: Bearer <Firebase ID token>` on ever
 │       └── app.ts / main.ts
 └── frontend/
     ├── app/                 # App Router: layouts, route groups, thin page.tsx views
+    │   ├── (site)/          # public website: /, /features, /pricing, /security, /about, /contact
     │   ├── (auth)/          # /login, /signup (public)
-    │   └── (crm)/           # auth-guarded shell: /, /contacts, /deals, /tasks, /settings/*
+    │   └── (crm)/           # auth-guarded sidebar shell: /dashboard, /contacts, /deals, /tasks, /activities, /reports, /settings/*
     └── src/
         ├── features/<name>/ # api/ (pure fetch, .ts) → hooks/ (React Query, .ts) → components/ (.tsx)
         └── shared/          # api-client, firebase, UI primitives, audit timeline, types

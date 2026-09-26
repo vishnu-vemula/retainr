@@ -1,6 +1,6 @@
-# Ultra Tasker — Frontend
+# Retainr — Frontend
 
-Next.js 16 (App Router) + React 18 + TypeScript frontend for the Ultra Tasker CRM. Talks to the Express API ([../backend](../backend)) with Firebase ID tokens.
+Next.js 16 (App Router) + React 18 + TypeScript frontend for the Retainr CRM. Talks to the Express API ([../backend](../backend)) with Firebase ID tokens.
 
 ## Quick start
 
@@ -30,12 +30,14 @@ Views are `.tsx`; operations are `.ts`.
 app/                          # Next.js App Router — views only (.tsx)
 ├── layout.tsx                # <html>/<body> + globals.css + Providers
 ├── providers.tsx             # 'use client': React Query + AuthProvider + toasts
-├── not-found.tsx             # redirect fallback for unknown routes
+├── not-found.tsx             # branded 404 inside the website shell
+├── (site)/                   # public website: home, features, pricing, security, about, contact
 ├── (auth)/                   # public routes
 │   ├── login/page.tsx
 │   └── signup/page.tsx
 └── (crm)/                    # auth-guarded group — layout redirects to /login
-    ├── page.tsx              # dashboard
+    ├── dashboard/page.tsx    # /dashboard
+    ├── reports/ activities/  # insights + workspace activity feed
     ├── contacts/[contactId]/ # list + detail
     ├── companies/[companyId]/
     ├── deals/[dealId]/       # kanban + detail/quote builder

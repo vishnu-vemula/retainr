@@ -1,11 +1,12 @@
-# AGENTS.md — Ultra Tasker Engineering Agent Harness
+# AGENTS.md — Retainr Engineering Agent Harness
 
 Operating manual for AI coding agents (opencode, Claude Code, Copilot Workspace, Cursor, etc.) working in this repository. **Read this file and `ARCHITECTURE.md` fully before making any change.** Load the matching skill from `SKILLS.md` before starting a task.
 
 ## Project
 
-**Ultra Tasker** — a production-grade CRM (contacts, companies, deals pipeline with quote builder, tasks, activities, tags, notifications, audit trail, dashboard, global search, user management) with Firebase auth, Prisma + PostgreSQL, and a fully TypeScript feature-based codebase.
+**Retainr** — a production-grade CRM (contacts, companies, deals pipeline with quote builder, tasks, activities, tags, notifications, audit trail, dashboard, global search, user management) with Firebase auth, Prisma + PostgreSQL, and a fully TypeScript feature-based codebase.
 
+- Frontend areas: public marketing site (`features/marketing`, copy in `model/content.ts`) and the signed-in workspace (sidebar shell).
 - Stack: Express + TS backend, Next.js 16 (App Router) + React + TS frontend, Firebase Authentication, Prisma ORM, React Query, Tailwind.
 - The old MERN task-manager code is gone; everything follows the target architecture described in `ARCHITECTURE.md`. There is no migration in flight — build new work on the existing patterns.
 
@@ -28,8 +29,9 @@ Operating manual for AI coding agents (opencode, Claude Code, Copilot Workspace,
 │       └── app.ts / main.ts
 └── frontend/
     ├── app/             # Next.js App Router — layouts + thin page.tsx route wrappers
+    │   ├── (site)/      # public website (/, /features, /pricing, /security, /about, /contact)
     │   ├── (auth)/      # /login, /signup
-    │   └── (crm)/       # auth-guarded shell wrapping all CRM routes
+    │   └── (crm)/       # auth-guarded sidebar shell wrapping all CRM routes (/dashboard, …)
     └── src/
         ├── features/    # one folder per feature (api/ hooks/ components/ model/)
         └── shared/      # api-client, firebase, UI primitives, format helpers, cross-feature types
