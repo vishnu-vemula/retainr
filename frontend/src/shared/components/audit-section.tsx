@@ -25,7 +25,9 @@ export function AuditSection({ entityType, entityId }: AuditSectionProps) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <History className="h-4 w-4 text-muted-foreground" />
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-primary">
+            <History className="h-4 w-4" />
+          </span>
           History
         </CardTitle>
       </CardHeader>
@@ -39,7 +41,7 @@ export function AuditSection({ entityType, entityId }: AuditSectionProps) {
         ) : !data || data.length === 0 ? (
           <p className="text-sm text-muted-foreground">No history recorded yet.</p>
         ) : (
-          <ul className="divide-y divide-border">
+          <ul className="divide-y divide-border/60">
             {data.map((entry) => (
               <li key={entry.id} className="flex items-start justify-between gap-4 py-2.5">
                 <div className="flex min-w-0 items-start gap-3">

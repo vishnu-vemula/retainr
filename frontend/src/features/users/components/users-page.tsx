@@ -48,7 +48,7 @@ export function UsersPage() {
 
   return (
     <div>
-      <PageHeader title="Users" description="Manage team members and their roles" />
+      <PageHeader eyebrow="Admin" title="Users" description="Manage team members and their roles" />
       <div className="mb-4">
         <div className="relative w-full max-w-xs">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/70" />

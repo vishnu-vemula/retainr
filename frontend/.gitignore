@@ -11,7 +11,8 @@ node_modules
 dist
 dist-ssr
 .next
-.next-production-check
+.next
+.next-*
 out
 *.local
 

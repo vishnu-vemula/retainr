@@ -20,8 +20,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       auth = getFirebaseAuth()
     } catch (error) {
+      // Firebase only initializes in the browser, so a config failure can only surface after mount;
+      // resolving it during render would diverge from the server HTML and break hydration.
+      /* eslint-disable react-hooks/set-state-in-effect */
       setConfigError(error instanceof Error ? error.message : 'Firebase failed to initialize')
       setLoading(false)
+      /* eslint-enable react-hooks/set-state-in-effect */
       return
     }
     const unsubscribe = onAuthStateChanged(auth, async (user) => {

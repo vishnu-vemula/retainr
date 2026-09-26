@@ -40,3 +40,21 @@ export function toDateTimeLocalValue(date: Date): string {
   const pad = (value: number) => String(value).padStart(2, '0')
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
+
+export function formatCompactCurrency(value: number, currency: string): string {
+  return new Intl.NumberFormat(undefined, {
+    style: 'currency',
+    currency,
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  }).format(value)
+}
+
+export function formatCompactCurrencyParts(value: number, currency: string): Intl.NumberFormatPart[] {
+  return new Intl.NumberFormat(undefined, {
+    style: 'currency',
+    currency,
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  }).formatToParts(value)
+}

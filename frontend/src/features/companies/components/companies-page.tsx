@@ -48,6 +48,7 @@ export function CompaniesPage() {
   return (
     <div>
       <PageHeader
+        eyebrow="Accounts"
         title="Companies"
         description="Organizations your contacts belong to"
         action={

@@ -8,18 +8,15 @@ A production-grade CRM built on a typed, feature-based stack: **contacts, compan
 
 ## Screenshots
 
-**Legacy UI (v1 task manager — new CRM screenshots coming after next deploy):**
-
-<details>
-<summary>View v1 screenshots</summary>
+Light, warm-neutral UI with a red-orange accent: floating pill navbar, display typography, soft rounded cards and a full site footer.
 
 | | |
 |---|---|
+| ![Dashboard](images/dashboard.png) | ![Deal pipeline](images/deals.png) |
+| ![Contacts](images/contacts.png) | ![Deal detail with quote builder](images/deal-detail.png) |
 | ![Login](images/login.png) | ![Signup](images/signup.png) |
-| ![Task Board](images/home.png) | ![Task Details](images/taskdetails.png) |
-| ![Edit Task](images/taskedit.png) | |
 
-</details>
+![Mobile — login, dashboard and navigation menu](images/mobile.png)
 
 ## Features
 
@@ -40,15 +37,13 @@ A production-grade CRM built on a typed, feature-based stack: **contacts, compan
 
 ## Architecture
 
-![Architecture](images/architecture.svg)
-
 | Layer | Stack |
 |-------|-------|
-| Backend | Node 18+, Express, TypeScript (strict), Zod |
+| Backend | Node 22.12+, Express, TypeScript (strict), Zod |
 | Data | PostgreSQL + Prisma ORM behind repository classes |
 | Auth | Firebase Admin (token verification, custom claims) |
 | DI | Constructor injection wired in a single composition root (`backend/src/container.ts`) |
-| Frontend | Next.js 14 (App Router) + React 18 + TypeScript, Tailwind CSS |
+| Frontend | Next.js 16 (App Router) + React 18 + TypeScript, Tailwind CSS |
 | Client data | `features/*/api` (pure fetch functions) → `features/*/hooks` (React Query) → `components` (render only) |
 | DnD | @hello-pangea/dnd (maintained react-beautiful-dnd fork) |
 
@@ -72,7 +67,7 @@ Every record is scoped by `ownerId` — users only ever see their own CRM data. 
 
 ### Prerequisites
 
-- Node.js 18.18+
+- Node.js 22+
 - PostgreSQL (local, Docker, or free tier on [Neon](https://neon.tech) / [Supabase](https://supabase.com))
 - A Firebase project (free)
 

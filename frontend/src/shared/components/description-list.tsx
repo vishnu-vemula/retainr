@@ -14,8 +14,8 @@ export function DescriptionList({ items }: DescriptionListProps) {
     <dl className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
       {items.map((item) => (
         <div key={item.label} className="min-w-0">
-          <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">{item.label}</dt>
-          <dd className="mt-1 text-sm text-foreground">{item.value}</dd>
+          <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{item.label}</dt>
+          <dd className="mt-1.5 text-sm font-medium text-foreground">{item.value}</dd>
         </div>
       ))}
     </dl>

@@ -28,17 +28,17 @@ function NotificationRow({ notification, onMarkRead, marking }: NotificationRowP
   return (
     <li
       className={clsx(
-        'flex items-start gap-4 px-4 py-4',
-        unread ? 'bg-primary/5' : 'bg-card',
+        'flex items-start gap-4 px-5 py-4',
+        unread ? 'bg-accent/40' : 'bg-card',
       )}
     >
       <span
         className={clsx(
           'flex h-9 w-9 shrink-0 items-center justify-center rounded-full',
-          unread ? 'bg-primary/20' : 'bg-secondary',
+          unread ? 'bg-primary text-primary-foreground shadow-glow' : 'bg-secondary',
         )}
       >
-        <Icon className={clsx('h-4 w-4', unread ? 'text-primary' : 'text-muted-foreground')} />
+        <Icon className={clsx('h-4 w-4', unread ? 'text-primary-foreground' : 'text-muted-foreground')} />
       </span>
       <div className="min-w-0 flex-1">
         <p className={clsx('text-sm', unread ? 'font-semibold text-foreground' : 'font-medium text-foreground/80')}>
@@ -71,6 +71,7 @@ export function NotificationsPage() {
   return (
     <div>
       <PageHeader
+        eyebrow="Inbox"
         title="Notifications"
         description="Alerts about overdue tasks and won deals"
         action={
@@ -96,15 +97,17 @@ export function NotificationsPage() {
           description="You are all caught up. New alerts will show up here."
         />
       ) : (
-        <Card className="divide-y divide-border overflow-hidden">
-          {data.items.map((notification) => (
-            <NotificationRow
-              key={notification.id}
-              notification={notification}
-              marking={markReadMutation.isPending}
-              onMarkRead={(id) => markReadMutation.mutate({ ids: [id] })}
-            />
-          ))}
+        <Card className="overflow-hidden">
+          <ul className="divide-y divide-border/60">
+            {data.items.map((notification) => (
+              <NotificationRow
+                key={notification.id}
+                notification={notification}
+                marking={markReadMutation.isPending}
+                onMarkRead={(id) => markReadMutation.mutate({ ids: [id] })}
+              />
+            ))}
+          </ul>
         </Card>
       )}
     </div>
