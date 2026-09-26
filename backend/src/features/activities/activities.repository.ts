@@ -34,7 +34,7 @@ export interface IActivitiesRepository {
   list(input: ListActivitiesInput): Promise<{ items: ActivityWithRelations[]; total: number }>;
   findByIdAndOwner(id: string, ownerId: string): Promise<ActivityWithRelations | null>;
   relationOwnedByOwner(kind: 'contact' | 'deal' | 'company', id: string, ownerId: string): Promise<boolean>;
-  touchContactLastActivity(contactId: string, ownerId: string, date: Date): Promise<void>;
+  refreshContactLastActivity(contactId: string, ownerId: string): Promise<void>;
   create(ownerId: string, input: CreateActivityData): Promise<ActivityWithRelations>;
   update(id: string, ownerId: string, input: UpdateActivityData): Promise<ActivityWithRelations>;
   delete(id: string, ownerId: string): Promise<void>;
@@ -75,8 +75,15 @@ export class ActivitiesRepository implements IActivitiesRepository {
     return this.prisma.company.findFirst({ where: { id, ownerId }, select: { id: true } }).then((row) => row !== null);
   }
 
-  async touchContactLastActivity(contactId: string, ownerId: string, date: Date): Promise<void> {
-    await this.prisma.contact.updateMany({ where: { id: contactId, ownerId }, data: { lastActivityAt: date } });
+  async refreshContactLastActivity(contactId: string, ownerId: string): Promise<void> {
+    const latest = await this.prisma.activity.aggregate({
+      where: { contactId, ownerId },
+      _max: { occurredAt: true }
+    });
+    await this.prisma.contact.updateMany({
+      where: { id: contactId, ownerId },
+      data: { lastActivityAt: latest._max.occurredAt }
+    });
   }
 
   create(ownerId: string, input: CreateActivityData): Promise<ActivityWithRelations> {

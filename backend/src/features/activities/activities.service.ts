@@ -23,20 +23,23 @@ export class ActivitiesService {
     await this.assertRelationsOwned(ownerId, input.contactId ?? null, input.dealId ?? null, input.companyId ?? null);
     const activity = await this.repo.create(ownerId, input);
     if (activity.contactId) {
-      await this.repo.touchContactLastActivity(activity.contactId, ownerId, activity.occurredAt);
+      await this.repo.refreshContactLastActivity(activity.contactId, ownerId);
     }
     await this.audit.log(ownerId, 'CREATE', 'ACTIVITY', activity.id, `${activity.type}: ${activity.title}`);
     return activity;
   }
 
   async update(ownerId: string, id: string, input: UpdateActivityInput): Promise<ActivityWithRelations> {
-    await this.get(ownerId, id);
+    const previous = await this.get(ownerId, id);
     if (input.contactId !== undefined || input.dealId !== undefined || input.companyId !== undefined) {
       await this.assertRelationsOwned(ownerId, input.contactId ?? null, input.dealId ?? null, input.companyId ?? null);
     }
     const activity = await this.repo.update(id, ownerId, input);
+    if (previous.contactId && previous.contactId !== activity.contactId) {
+      await this.repo.refreshContactLastActivity(previous.contactId, ownerId);
+    }
     if (activity.contactId) {
-      await this.repo.touchContactLastActivity(activity.contactId, ownerId, activity.occurredAt);
+      await this.repo.refreshContactLastActivity(activity.contactId, ownerId);
     }
     await this.audit.log(ownerId, 'UPDATE', 'ACTIVITY', id, `Updated ${activity.type}: ${activity.title}`);
     return activity;
@@ -45,6 +48,9 @@ export class ActivitiesService {
   async delete(ownerId: string, id: string): Promise<void> {
     const activity = await this.get(ownerId, id);
     await this.repo.delete(id, ownerId);
+    if (activity.contactId) {
+      await this.repo.refreshContactLastActivity(activity.contactId, ownerId);
+    }
     await this.audit.log(ownerId, 'DELETE', 'ACTIVITY', id, `Deleted ${activity.type}: ${activity.title}`);
   }
 

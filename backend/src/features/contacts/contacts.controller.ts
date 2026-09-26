@@ -12,7 +12,8 @@ import { AppError } from '../../common/utils/app-error';
 const csvEscape = (value: string | number | null): string => {
   if (value === null) return '';
   const text = String(value);
-  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  const safeText = /^[=+\-@]/u.test(text.trimStart()) ? `'${text}` : text;
+  return /[",\n\r]/.test(safeText) ? `"${safeText.replace(/"/g, '""')}"` : safeText;
 };
 
 export class ContactsController {

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { ContactsService } from './contacts.service';
 import type { ContactWithCompany, IContactsRepository } from './contacts.repository';
 import type { ListContactsQuery } from './contacts.schemas';
+import { AppError } from '../../common/utils/app-error';
 
 function buildFakeRepo(overrides: Partial<IContactsRepository> = {}): IContactsRepository {
   const contact = { id: 'c1', ownerId: 'u1', name: 'John' } as ContactWithCompany;
@@ -48,10 +49,31 @@ describe('ContactsService', () => {
 
   it('rejects tags not owned by the requester', async () => {
     const repo = buildFakeRepo();
-    const tags = { assertAllOwned: vi.fn().mockRejectedValue(new Error('nope')) };
+    const tags = { assertAllOwned: vi.fn().mockRejectedValue(new AppError(422, 'INVALID_TAG', 'One or more tags do not exist')) };
     const service = new ContactsService(repo, companies, tags, audit);
-    await expect(service.setTags('u1', 'c1', { tagIds: ['foreign'] })).rejects.toBeInstanceOf(Error);
+    await expect(service.setTags('u1', 'c1', { tagIds: ['foreign'] })).rejects.toMatchObject({ status: 422, code: 'INVALID_TAG' });
+    expect(tags.assertAllOwned).toHaveBeenCalledWith(['foreign'], 'u1');
     expect(repo.setTags).not.toHaveBeenCalled();
+  });
+
+  it('does not update a contact to a company owned by another user', async () => {
+    const repo = buildFakeRepo();
+    const guard = { companyOwnedByOwner: vi.fn().mockResolvedValue(false) };
+    const service = new ContactsService(repo, guard, { assertAllOwned: vi.fn() }, audit);
+
+    await expect(service.update('u1', 'c1', { companyId: 'foreign-company' })).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    expect(guard.companyOwnedByOwner).toHaveBeenCalledWith('foreign-company', 'u1');
+    expect(repo.update).not.toHaveBeenCalled();
+  });
+
+  it('does not delete a contact owned by another user', async () => {
+    const repo = buildFakeRepo({ findByIdAndOwner: vi.fn().mockResolvedValue(null) });
+    const audit = { log: vi.fn().mockResolvedValue(undefined) };
+    const service = new ContactsService(repo, companies, { assertAllOwned: vi.fn() }, audit);
+
+    await expect(service.delete('u1', 'foreign')).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    expect(repo.delete).not.toHaveBeenCalled();
+    expect(audit.log).not.toHaveBeenCalled();
   });
 
   it('writes an audit entry on delete', async () => {

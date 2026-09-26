@@ -24,16 +24,24 @@ const baseQuery: ListTasksQuery = { page: 1, pageSize: 25 };
 
 describe('TasksService', () => {
   it('creates the five onboarding handoffs with due dates and audit records', async () => {
-    const created = [{ id: 'onboarding-1', title: 'Collect assets and access' }] as TaskWithRelations[];
-    const repo = buildFakeRepo({ createOnboardingTasks: vi.fn().mockResolvedValue(created) });
-    const audit = buildAudit();
-    await new TasksService(repo, audit).createForWonDeal('u1', 'd1', 'c1');
-    expect(repo.createOnboardingTasks).toHaveBeenCalledWith('u1', 'd1', 'c1', expect.arrayContaining([
-      expect.objectContaining({ key: 'collect-assets', title: 'Collect assets and access', dueDate: expect.any(Date) }),
-      expect.objectContaining({ key: 'first-review', title: 'Schedule first client review', dueDate: expect.any(Date) })
-    ]));
-    expect(vi.mocked(repo.createOnboardingTasks).mock.calls[0]?.[3]).toHaveLength(5);
-    expect(audit.log).toHaveBeenCalledWith('u1', 'CREATE', 'TASK', 'onboarding-1', expect.stringContaining('Collect assets'));
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-01-01T12:00:00.000Z'));
+    try {
+      const created = [{ id: 'onboarding-1', title: 'Collect assets and access' }] as TaskWithRelations[];
+      const repo = buildFakeRepo({ createOnboardingTasks: vi.fn().mockResolvedValue(created) });
+      const audit = buildAudit();
+      await new TasksService(repo, audit).createForWonDeal('u1', 'd1', 'c1');
+      expect(repo.createOnboardingTasks).toHaveBeenCalledWith('u1', 'd1', 'c1', [
+        { key: 'collect-assets', title: 'Collect assets and access', dueDate: new Date('2026-01-02T12:00:00.000Z') },
+        { key: 'schedule-kickoff', title: 'Schedule kickoff', dueDate: new Date('2026-01-03T12:00:00.000Z') },
+        { key: 'confirm-scope', title: 'Confirm scope', dueDate: new Date('2026-01-04T12:00:00.000Z') },
+        { key: 'assign-owner', title: 'Assign account owner', dueDate: new Date('2026-01-06T12:00:00.000Z') },
+        { key: 'first-review', title: 'Schedule first client review', dueDate: new Date('2026-01-08T12:00:00.000Z') }
+      ]);
+      expect(audit.log).toHaveBeenCalledWith('u1', 'CREATE', 'TASK', 'onboarding-1', expect.stringContaining('Collect assets'));
+    } finally {
+      vi.useRealTimers();
+    }
   });
   it('scopes list queries to the requesting owner', async () => {
     const repo = buildFakeRepo();
