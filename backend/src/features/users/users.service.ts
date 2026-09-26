@@ -1,7 +1,7 @@
 import type { Role, User } from '@prisma/client';
 import type { AuthUser } from '../../types/express';
 import { AppError } from '../../common/utils/app-error';
-import { firebaseAuth } from '../../database/firebase';
+import { firebaseAuth, hasFullFirebaseCredentials } from '../../database/firebase';
 import { bootstrapAdminEmails } from '../../config/env';
 import type { IUsersRepository, ListUsersInput, UpsertFromFirebaseInput } from './users.repository';
 
@@ -61,7 +61,15 @@ export class UsersService {
       throw new AppError(422, 'INVALID_INPUT', 'Admins cannot demote themselves');
     }
     const user = await this.repo.setRole(targetId, role);
-    await firebaseAuth.setCustomUserClaims(targetId, { role });
+    if (hasFullFirebaseCredentials) {
+      await firebaseAuth.setCustomUserClaims(targetId, { role });
+    } else {
+      console.warn(
+        'FIREBASE_SERVICE_ACCOUNT_KEY not configured — role saved to database only; ' +
+          'Firebase custom claim skipped. Authorization is database-driven, so this is safe. ' +
+          'Add the service account key to enable claim syncing (see .env.example).'
+      );
+    }
     this.cache.delete(targetId);
     return user;
   }

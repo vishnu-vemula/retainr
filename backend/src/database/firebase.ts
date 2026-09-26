@@ -16,9 +16,21 @@ function readServiceAccount(): ServiceAccount | undefined {
   return undefined;
 }
 
+const account = readServiceAccount();
+const hasAcd = Boolean(process.env.GOOGLE_APPLICATION_CREDENTIALS);
+
+export const hasFullFirebaseCredentials = Boolean(account || hasAcd);
+
 if (getApps().length === 0) {
-  const account = readServiceAccount();
-  initializeApp({ credential: account ? cert(account) : applicationDefault() });
+  if (account) {
+    initializeApp({ credential: cert(account) });
+  } else if (hasAcd) {
+    initializeApp({ credential: applicationDefault() });
+  } else if (env.FIREBASE_PROJECT_ID) {
+    initializeApp({ projectId: env.FIREBASE_PROJECT_ID });
+  } else {
+    initializeApp({ credential: applicationDefault() });
+  }
 }
 
 export const firebaseAuth = getAuth();
