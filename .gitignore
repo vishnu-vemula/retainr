@@ -1,0 +1,59 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+.yarn/
+
+# Build output
+dist/
+dist-ssr/
+build/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Test output
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+
+# Caches
+.cache/
+.eslintcache
+.turbo/
+.vercel/
+
+# Environment files (keep the committed templates)
+.env
+.env.*
+!.env.example
+
+# Credentials
+service-account*.json
+*-firebase-adminsdk-*.json
+.firebase/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+Thumbs.db
