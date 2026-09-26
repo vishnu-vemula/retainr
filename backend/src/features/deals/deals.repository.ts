@@ -56,6 +56,8 @@ export interface ReorderUpdateInput {
   id: string;
   stage: DealStage;
   position: number;
+  probability?: number;
+  closedAt?: Date | null;
 }
 
 export interface IDealsRepository {
@@ -63,7 +65,7 @@ export interface IDealsRepository {
   findByIdAndOwner(id: string, ownerId: string): Promise<DealWithRelations | null>;
   findDetailByIdAndOwner(id: string, ownerId: string): Promise<DealDetail | null>;
   maxPositionInStage(ownerId: string, stage: string): Promise<number>;
-  relationOwnedByOwner(kind: 'contact' | 'company', id: string, ownerId: string): Promise<boolean>;
+  relationOwnedByOwner(kind: 'contact' | 'company' | 'product', id: string, ownerId: string): Promise<boolean>;
   create(ownerId: string, input: CreateDealInput): Promise<DealWithRelations>;
   update(id: string, ownerId: string, input: UpdateDealInput): Promise<DealWithRelations>;
   delete(id: string, ownerId: string): Promise<void>;
@@ -128,11 +130,14 @@ export class DealsRepository implements IDealsRepository {
     return agg._max.position ?? 0;
   }
 
-  relationOwnedByOwner(kind: 'contact' | 'company', id: string, ownerId: string): Promise<boolean> {
+  relationOwnedByOwner(kind: 'contact' | 'company' | 'product', id: string, ownerId: string): Promise<boolean> {
     if (kind === 'contact') {
       return this.prisma.contact.findFirst({ where: { id, ownerId }, select: { id: true } }).then((row) => row !== null);
     }
-    return this.prisma.company.findFirst({ where: { id, ownerId }, select: { id: true } }).then((row) => row !== null);
+    if (kind === 'company') {
+      return this.prisma.company.findFirst({ where: { id, ownerId }, select: { id: true } }).then((row) => row !== null);
+    }
+    return this.prisma.product.findFirst({ where: { id, ownerId }, select: { id: true } }).then((row) => row !== null);
   }
 
   create(ownerId: string, input: CreateDealInput): Promise<DealWithRelations> {
@@ -192,7 +197,12 @@ export class DealsRepository implements IDealsRepository {
       updates.map((update) =>
         this.prisma.deal.updateMany({
           where: { id: update.id, ownerId },
-          data: { stage: update.stage, position: update.position }
+          data: {
+            stage: update.stage,
+            position: update.position,
+            ...(update.probability !== undefined && { probability: update.probability }),
+            ...(update.closedAt !== undefined && { closedAt: update.closedAt })
+          }
         })
       )
     );

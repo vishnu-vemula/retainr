@@ -43,6 +43,30 @@ export const reorderDealsSchema = z.object({
     )
     .min(1)
     .max(100)
+    .superRefine((updates, context) => {
+      const ids = new Set<string>();
+      const positions = new Set<string>();
+      updates.forEach((update, index) => {
+        if (ids.has(update.id)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'A deal can only be reordered once per request',
+            path: [index, 'id']
+          });
+        }
+        ids.add(update.id);
+
+        const positionKey = `${update.stage}:${update.position}`;
+        if (positions.has(positionKey)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Each stage position can only be assigned once per request',
+            path: [index, 'position']
+          });
+        }
+        positions.add(positionKey);
+      });
+    })
 });
 
 export const createDealItemSchema = z.object({

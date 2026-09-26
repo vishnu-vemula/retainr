@@ -171,6 +171,26 @@ it('creates products and deal line items, recalculating deal value', async () =>
   expect(detail.body.data.value).toBe(300);
 });
 
+it('enforces quote-item parent and product ownership boundaries', async () => {
+  const otherDeal = await request(app).post('/api/v1/deals').set(as('e2e')).send({ title: 'Separate deal', value: 0 });
+  expect(otherDeal.status).toBe(201);
+
+  const wrongParent = await request(app)
+    .patch(`/api/v1/deals/${otherDeal.body.data.id}/items/${itemId}`)
+    .set(as('e2e'))
+    .send({ quantity: 9 });
+  expect(wrongParent.status).toBe(404);
+
+  const foreignProduct = await request(app).post('/api/v1/products').set(as('member2')).send({ name: 'Private product', price: 99 });
+  expect(foreignProduct.status).toBe(201);
+
+  const foreignProductItem = await request(app)
+    .post(`/api/v1/deals/${dealId}/items`)
+    .set(as('e2e'))
+    .send({ productId: foreignProduct.body.data.id, description: 'Private product', quantity: 1, unitPrice: 99 });
+  expect(foreignProductItem.status).toBe(404);
+});
+
 it('applies stage rules and emits a deduped DEAL_WON notification', async () => {
   const updated = await request(app).patch(`/api/v1/deals/${dealId}`).set(as('e2e')).send({ stage: 'PROPOSAL' });
   expect(updated.body.data.probability).toBe(50);
@@ -225,6 +245,14 @@ it('reorders deals across stages', async () => {
   });
   expect(res.status).toBe(200);
   expect(res.body.data).toHaveLength(2);
+
+  const duplicate = await request(app).patch('/api/v1/deals/reorder').set(as('e2e')).send({
+    updates: [
+      { id: dealId, stage: 'WON', position: 0 },
+      { id: dealId, stage: 'WON', position: 1 }
+    ]
+  });
+  expect(duplicate.status).toBe(422);
 });
 
 it('returns audit history with the stage change recorded', async () => {

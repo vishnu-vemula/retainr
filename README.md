@@ -37,8 +37,6 @@ Light, warm-neutral UI with a red-orange accent: floating pill navbar, display t
 
 ## Architecture
 
-![Architecture](images/architecture.svg)
-
 | Layer | Stack |
 |-------|-------|
 | Backend | Node 18+, Express, TypeScript (strict), Zod |
@@ -93,7 +91,7 @@ npm run dev             # API on http://localhost:4000
 In `backend/.env`:
 
 - `DATABASE_URL` — your Postgres connection string (add `?sslmode=require` for Neon/Supabase)
-- Firebase credentials — either paste the whole service-account JSON into `FIREBASE_SERVICE_ACCOUNT_KEY` (single line), or fill `FIREBASE_PROJECT_ID` / `FIREBASE_CLIENT_EMAIL` / `FIREBASE_PRIVATE_KEY` (keep the `\n` escapes)
+- Firebase credentials — either paste the whole service-account JSON into `FIREBASE_SERVICE_ACCOUNT_KEY` (single line), fill `FIREBASE_PROJECT_ID` / `FIREBASE_CLIENT_EMAIL` / `FIREBASE_PRIVATE_KEY` (keep the `\n` escapes), or set `GOOGLE_APPLICATION_CREDENTIALS` to a service-account key-file path
 - `BOOTSTRAP_ADMIN_EMAILS` — comma-separated; these emails get ADMIN on first login
 
 Optional demo data:
@@ -187,7 +185,6 @@ Base URL: `/api/v1` · Auth: `Authorization: Bearer <Firebase ID token>` on ever
 
 ## Roadmap
 
-- [ ] CI (typecheck + lint + test on push)
 - [ ] Playwright smoke tests
 - [ ] CSV import (export is live)
 - [ ] Email reminders for overdue tasks

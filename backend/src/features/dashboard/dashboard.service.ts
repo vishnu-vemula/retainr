@@ -104,7 +104,7 @@ export class DashboardService {
       .slice(0, 5);
     const companyIds = topGroups.map((group) => group.companyId).filter((id): id is string => id !== null);
     const companies = await this.prisma.company.findMany({
-      where: { id: { in: companyIds } },
+      where: { id: { in: companyIds }, ownerId },
       select: { id: true, name: true }
     });
     const companyName = new Map(companies.map((company) => [company.id, company.name]));

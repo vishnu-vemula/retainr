@@ -72,6 +72,9 @@ export class DealsService {
       position: maxPosition + 1
     });
     await this.audit.log(ownerId, 'CREATE', 'DEAL', deal.id, `Created deal "${deal.title}" (${deal.value} ${deal.currency})`);
+    if (stage === 'WON') {
+      await this.notifyWon(ownerId, deal);
+    }
     return deal;
   }
 
@@ -94,12 +97,7 @@ export class DealsService {
     if (stageChanged && nextStage !== undefined) {
       await this.audit.log(ownerId, 'STAGE_CHANGE', 'DEAL', id, `${existing.stage} → ${nextStage}`);
       if (nextStage === 'WON') {
-        await this.notifications.dispatch(ownerId, {
-          type: 'DEAL_WON',
-          title: `Deal won: ${updated.title}`,
-          body: `${updated.value} ${updated.currency}`,
-          dedupeKey: `deal-won:${id}`
-        });
+        await this.notifyWon(ownerId, updated);
       }
     }
     return updated;
@@ -125,11 +123,39 @@ export class DealsService {
     if (owned.some((deal) => deal === null)) {
       throw AppError.notFound('Deal');
     }
-    return this.repo.reorder(ownerId, input.updates);
+    const existingById = new Map(owned.filter((deal): deal is DealWithRelations => deal !== null).map((deal) => [deal.id, deal]));
+    const updates = input.updates.map((update) => {
+      const existing = existingById.get(update.id);
+      if (!existing || existing.stage === update.stage) return update;
+      return {
+        ...update,
+        probability: DEFAULT_PROBABILITY[update.stage],
+        closedAt: update.stage === 'WON' || update.stage === 'LOST' ? new Date() : null
+      };
+    });
+    const reordered = await this.repo.reorder(ownerId, updates);
+    const reorderedById = new Map(reordered.map((deal) => [deal.id, deal]));
+
+    for (const update of updates) {
+      const existing = existingById.get(update.id);
+      const deal = reorderedById.get(update.id) ?? existing;
+      if (!existing || !deal) continue;
+      if (existing.stage === update.stage) {
+        await this.audit.log(ownerId, 'UPDATE', 'DEAL', update.id, `Reordered "${deal.title}" in ${update.stage}`);
+        continue;
+      }
+      await this.audit.log(ownerId, 'STAGE_CHANGE', 'DEAL', update.id, `${existing.stage} → ${update.stage}`);
+      if (update.stage === 'WON') {
+        await this.notifyWon(ownerId, deal);
+      }
+    }
+
+    return reordered;
   }
 
   async addItem(ownerId: string, dealId: string, input: CreateDealItemInput): Promise<DealItemWithProduct> {
     await this.get(ownerId, dealId);
+    await this.assertProductOwned(ownerId, input.productId ?? null);
     const item = await this.repo.addItem(ownerId, dealId, input);
     await this.recalcValueFromItems(ownerId, dealId);
     await this.audit.log(ownerId, 'UPDATE', 'DEAL', dealId, `Added line item "${item.description}"`);
@@ -138,7 +164,10 @@ export class DealsService {
 
   async updateItem(ownerId: string, dealId: string, itemId: string, input: UpdateDealItemInput): Promise<DealItemWithProduct> {
     await this.get(ownerId, dealId);
-    await this.getItem(ownerId, itemId);
+    await this.getItem(ownerId, dealId, itemId);
+    if (input.productId !== undefined) {
+      await this.assertProductOwned(ownerId, input.productId);
+    }
     const item = await this.repo.updateItem(itemId, ownerId, input);
     await this.recalcValueFromItems(ownerId, dealId);
     await this.audit.log(ownerId, 'UPDATE', 'DEAL', dealId, `Updated line item "${item.description}"`);
@@ -147,15 +176,15 @@ export class DealsService {
 
   async deleteItem(ownerId: string, dealId: string, itemId: string): Promise<void> {
     await this.get(ownerId, dealId);
-    const item = await this.getItem(ownerId, itemId);
+    const item = await this.getItem(ownerId, dealId, itemId);
     await this.repo.deleteItem(itemId, ownerId);
     await this.recalcValueFromItems(ownerId, dealId);
     await this.audit.log(ownerId, 'UPDATE', 'DEAL', dealId, `Removed line item "${item.description}"`);
   }
 
-  private async getItem(ownerId: string, itemId: string): Promise<DealItemWithProduct> {
+  private async getItem(ownerId: string, dealId: string, itemId: string): Promise<DealItemWithProduct> {
     const item = await this.repo.findItemByIdAndOwner(itemId, ownerId);
-    if (!item) throw AppError.notFound('Deal item');
+    if (!item || item.dealId !== dealId) throw AppError.notFound('Deal item');
     return item;
   }
 
@@ -173,5 +202,20 @@ export class DealsService {
       const owned = await this.repo.relationOwnedByOwner('company', companyId, ownerId);
       if (!owned) throw AppError.notFound('Company');
     }
+  }
+
+  private async assertProductOwned(ownerId: string, productId: string | null): Promise<void> {
+    if (!productId) return;
+    const owned = await this.repo.relationOwnedByOwner('product', productId, ownerId);
+    if (!owned) throw AppError.notFound('Product');
+  }
+
+  private notifyWon(ownerId: string, deal: DealWithRelations): Promise<void> {
+    return this.notifications.dispatch(ownerId, {
+      type: 'DEAL_WON',
+      title: `Deal won: ${deal.title}`,
+      body: `${deal.value} ${deal.currency}`,
+      dedupeKey: `deal-won:${deal.id}`
+    });
   }
 }
