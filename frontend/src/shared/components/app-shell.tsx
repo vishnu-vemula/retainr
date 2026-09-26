@@ -1,15 +1,17 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import {
   Building2,
   KanbanSquare,
   LayoutDashboard,
   LogOut,
+  Menu,
   Package,
   Tags,
   Users,
   UsersRound,
+  X,
   Zap,
 } from 'lucide-react'
 import clsx from 'clsx'
@@ -61,6 +63,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { profile, firebaseUser, signOut } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
   const handleSignOut = async () => {
     await signOut()
@@ -83,6 +86,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           ? 'bg-primary/10 text-primary'
           : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
       )}
+      onClick={() => setMobileNavOpen(false)}
     >
       <Icon
         className={clsx(
@@ -95,13 +99,37 @@ export function AppShell({ children }: { children: ReactNode }) {
   )
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <aside className="fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col border-r bg-card">
+    <div className="flex min-h-screen bg-background/60">
+      {mobileNavOpen ? (
+        <button
+          type="button"
+          aria-label="Close navigation"
+          className="fixed inset-0 z-40 bg-slate-950/35 backdrop-blur-[1px] lg:hidden"
+          onClick={() => setMobileNavOpen(false)}
+        />
+      ) : null}
+      <aside
+        id="main-navigation"
+        className={clsx(
+          'fixed inset-y-0 left-0 z-50 flex w-72 shrink-0 flex-col border-r bg-card/95 shadow-2xl shadow-slate-950/10 backdrop-blur-xl transition-transform duration-200 lg:w-64 lg:translate-x-0 lg:shadow-none',
+          mobileNavOpen ? 'translate-x-0' : '-translate-x-full',
+        )}
+      >
         <div className="flex items-center gap-2.5 px-5 py-5">
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 shadow-md shadow-indigo-500/20">
             <Zap className="h-5 w-5 text-white" />
           </span>
           <span className="text-lg font-semibold tracking-tight text-foreground">Ultra Tasker</span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="ml-auto lg:hidden"
+            aria-label="Close navigation"
+            onClick={() => setMobileNavOpen(false)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
         <Separator />
         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4 scrollbar-thin">
@@ -155,18 +183,30 @@ export function AppShell({ children }: { children: ReactNode }) {
           </DropdownMenu>
         </div>
       </aside>
-      <main className="flex min-w-0 flex-1 flex-col pl-64">
-        <header className="sticky top-0 z-30 flex items-center gap-3 border-b bg-card/80 px-8 py-3 backdrop-blur">
+      <main className="flex min-w-0 flex-1 flex-col lg:pl-64">
+        <header className="sticky top-0 z-30 flex items-center gap-2 border-b bg-card/80 px-4 py-3 backdrop-blur-xl sm:gap-3 sm:px-6 lg:px-8">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="shrink-0 lg:hidden"
+            aria-controls="main-navigation"
+            aria-expanded={mobileNavOpen}
+            aria-label="Open navigation"
+            onClick={() => setMobileNavOpen(true)}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
           <GlobalSearch />
           <div className="ml-auto flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
+            <Button variant="ghost" size="sm" className="hidden text-muted-foreground sm:inline-flex" asChild>
               <Link href="/tasks">Go to tasks</Link>
             </Button>
             <NotificationsBell />
           </div>
         </header>
         <div className="flex-1 overflow-x-auto">
-          <div className="mx-auto max-w-7xl animate-fade-in p-8">{children}</div>
+          <div className="mx-auto max-w-7xl animate-fade-in p-4 sm:p-6 lg:p-8">{children}</div>
         </div>
       </main>
     </div>

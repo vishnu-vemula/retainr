@@ -18,6 +18,12 @@ export function GlobalSearch() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault()
+        inputRef.current?.focus()
+        setOpen(true)
+        return
+      }
       if (event.key === 'Escape') {
         setQuery('')
         setOpen(false)
@@ -54,7 +60,7 @@ export function GlobalSearch() {
           ref={inputRef}
           type="search"
           placeholder="Search contacts, companies, deals…"
-          className="pl-9"
+          className="pl-9 pr-16"
           value={query}
           onChange={(event) => {
             setQuery(event.target.value)
@@ -64,6 +70,9 @@ export function GlobalSearch() {
             if (query.trim().length > 0) setOpen(true)
           }}
         />
+        <kbd className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded border bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground sm:block">
+          Ctrl K
+        </kbd>
       </div>
       {open && debouncedQuery.length >= 1 ? (
         <div className="absolute z-50 mt-2 max-h-96 w-full overflow-y-auto rounded-md border bg-popover p-1 shadow-md animate-fade-in-up">

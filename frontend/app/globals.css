@@ -1,28 +1,29 @@
 @tailwind base;
+@tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222.2 47.4% 11.2%;
+    --background: 222 47% 98%;
+    --foreground: 225 39% 14%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 47.4% 11.2%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 47.4% 11.2%;
-    --primary: 243 75% 59%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
+    --primary: 243 67% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 225 36% 96%;
     --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 226 100% 97%;
-    --accent-foreground: 243 75% 45%;
+    --muted: 225 36% 96%;
+    --muted-foreground: 221 13% 43%;
+    --accent: 244 100% 97%;
+    --accent-foreground: 243 67% 45%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 243 75% 59%;
-    --radius: 0.5rem;
+    --border: 225 26% 90%;
+    --input: 225 26% 88%;
+    --ring: 243 67% 55%;
+    --radius: 0.75rem;
   }
 }
 
@@ -31,7 +32,18 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply min-h-screen bg-background text-foreground antialiased;
+    background-image:
+      radial-gradient(circle at top left, hsl(243 67% 55% / 0.08), transparent 26rem),
+      radial-gradient(circle at right 22rem, hsl(192 85% 48% / 0.05), transparent 22rem);
+  }
+}
+
+@layer components {
+  .auth-page {
+    background-image:
+      radial-gradient(circle at 16% 18%, hsl(243 67% 55% / 0.18), transparent 25rem),
+      radial-gradient(circle at 86% 82%, hsl(192 85% 48% / 0.13), transparent 23rem);
   }
 }
 

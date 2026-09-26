@@ -19,15 +19,15 @@ export function LoginPage() {
 
   if (configError) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <div className="auth-page flex min-h-screen items-center justify-center bg-background p-4">
         <FirebaseSetupNotice error={configError} />
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md shadow-lg shadow-slate-200/50">
+    <div className="auth-page flex min-h-screen items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md border-white/70 shadow-xl shadow-indigo-950/10">
         <CardHeader className="items-center pb-0">
           <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-md shadow-indigo-500/25">
             <Zap className="h-7 w-7 text-white" />
