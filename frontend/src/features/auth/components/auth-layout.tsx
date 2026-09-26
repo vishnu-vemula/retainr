@@ -120,7 +120,7 @@ export function AuthLayout({ eyebrow, title, description, children, footer }: Au
       <ShowcasePanel />
       <div className="flex flex-col rounded-[32px] border border-border/60 bg-card px-6 py-6 shadow-soft sm:px-10">
         <div className="flex items-center justify-between">
-          <Link href="/" className="lg:invisible" aria-label="Ultra Tasker home">
+          <Link href="/" aria-label="Ultra Tasker home">
             <BrandLogo />
           </Link>
           <span className="inline-flex items-center gap-2 rounded-full border border-border/70 px-3 py-1 text-xs font-medium text-muted-foreground">
