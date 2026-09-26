@@ -12,8 +12,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.test.json",
     "test": "npm run test:unit",
     "test:unit": "vitest run",
-    "test:integration": "vitest run --config vitest.integration.config.ts",
-    "test:regression": "vitest run --config vitest.regression.config.ts",
+    "test:integration": "vitest run --config vitest.integration.config.mts",
+    "test:regression": "vitest run --config vitest.regression.config.mts",
     "test:e2e": "npm run test:integration",
     "db:seed": "tsx prisma/seed.ts",
     "db:migrate": "prisma migrate dev",
@@ -29,7 +29,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "express-rate-limit": "^7.4.0",
-    "firebase-admin": "^12.1.0",
+    "firebase-admin": "14.5.0",
     "helmet": "^7.1.0",
     "pino": "^9.3.0",
     "pino-http": "^10.2.0",
@@ -40,7 +40,7 @@
     "@types/compression": "^1.7.5",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
-    "@types/node": "^20.14.15",
+    "@types/node": "24.10.0",
     "@types/supertest": "^7.2.1",
     "eslint": "^9.9.0",
     "prisma": "^5.18.0",
@@ -48,9 +48,10 @@
     "tsx": "^4.19.0",
     "typescript": "^5.5.4",
     "typescript-eslint": "^8.2.0",
-    "vitest": "^2.0.5"
+    "vite": "8.3.1",
+    "vitest": "5.0.2"
   },
   "engines": {
-    "node": ">=18.18"
+    "node": ">=22.12"
   }
 }

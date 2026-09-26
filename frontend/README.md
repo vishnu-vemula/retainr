@@ -1,6 +1,6 @@
 # Ultra Tasker — Frontend
 
-Next.js 14 (App Router) + React 18 + TypeScript frontend for the Ultra Tasker CRM. Talks to the Express API ([../backend](../backend)) with Firebase ID tokens.
+Next.js 16 (App Router) + React 18 + TypeScript frontend for the Ultra Tasker CRM. Talks to the Express API ([../backend](../backend)) with Firebase ID tokens.
 
 ## Quick start
 

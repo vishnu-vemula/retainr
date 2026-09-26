@@ -44,11 +44,11 @@ A production-grade CRM built on a typed, feature-based stack: **contacts, compan
 
 | Layer | Stack |
 |-------|-------|
-| Backend | Node 18+, Express, TypeScript (strict), Zod |
+| Backend | Node 22.12+, Express, TypeScript (strict), Zod |
 | Data | PostgreSQL + Prisma ORM behind repository classes |
 | Auth | Firebase Admin (token verification, custom claims) |
 | DI | Constructor injection wired in a single composition root (`backend/src/container.ts`) |
-| Frontend | Next.js 14 (App Router) + React 18 + TypeScript, Tailwind CSS |
+| Frontend | Next.js 16 (App Router) + React 18 + TypeScript, Tailwind CSS |
 | Client data | `features/*/api` (pure fetch functions) → `features/*/hooks` (React Query) → `components` (render only) |
 | DnD | @hello-pangea/dnd (maintained react-beautiful-dnd fork) |
 
