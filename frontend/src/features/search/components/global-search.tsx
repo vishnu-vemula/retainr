@@ -84,7 +84,7 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
         </kbd>
       </div>
       {open && debouncedQuery.length >= 1 ? (
-        <div className="absolute right-0 z-50 mt-2 max-h-[26rem] w-full min-w-[20rem] overflow-y-auto rounded-2xl border border-border/70 bg-popover p-1.5 shadow-lift animate-fade-in-up scrollbar-thin">
+        <div className="absolute left-0 z-50 mt-2 max-h-[26rem] w-[22rem] max-w-[calc(100vw-2.5rem)] overflow-y-auto rounded-2xl border border-border/70 bg-popover p-1.5 shadow-lift animate-fade-in-up scrollbar-thin">
           {isFetching && !data ? (
             <div className="flex items-center gap-2 px-3 py-4 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />

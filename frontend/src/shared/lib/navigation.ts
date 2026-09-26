@@ -1,9 +1,12 @@
 import {
+  BarChart3,
   Bell,
   Building2,
+  CircleUserRound,
   KanbanSquare,
   LayoutDashboard,
   ListChecks,
+  MessagesSquare,
   Package,
   Tags,
   Users,
@@ -24,9 +27,12 @@ export const workspaceNav: NavItem[] = [
   { to: '/companies', label: 'Companies', icon: Building2 },
   { to: '/deals', label: 'Deals', icon: KanbanSquare },
   { to: '/tasks', label: 'Tasks', icon: ListChecks },
+  { to: '/activities', label: 'Activities', icon: MessagesSquare },
+  { to: '/reports', label: 'Reports', icon: BarChart3 },
 ]
 
 export const settingsNav: NavItem[] = [
+  { to: '/settings/account', label: 'Account', icon: CircleUserRound },
   { to: '/settings/tags', label: 'Tags', icon: Tags },
   { to: '/settings/products', label: 'Products', icon: Package },
   { to: '/settings/users', label: 'Users', icon: Users, adminOnly: true },
@@ -35,7 +41,7 @@ export const settingsNav: NavItem[] = [
 export const notificationsNav: NavItem = { to: '/notifications', label: 'Notifications', icon: Bell }
 
 export function isNavActive(pathname: string, to: string): boolean {
-  return to === '/' ? pathname === '/' : pathname === to || pathname.startsWith(`${to}/`)
+  return pathname === to || pathname.startsWith(`${to}/`)
 }
 
 export function visibleFor(items: NavItem[], isAdmin: boolean): NavItem[] {
