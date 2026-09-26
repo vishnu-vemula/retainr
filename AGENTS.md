@@ -6,7 +6,7 @@ Operating manual for AI coding agents (opencode, Claude Code, Copilot Workspace,
 
 **Ultra Tasker** — a production-grade CRM (contacts, companies, deals pipeline with quote builder, tasks, activities, tags, notifications, audit trail, dashboard, global search, user management) with Firebase auth, Prisma + PostgreSQL, and a fully TypeScript feature-based codebase.
 
-- Stack: Express + TS backend, Next.js 14 (App Router) + React + TS frontend, Firebase Authentication, Prisma ORM, React Query, Tailwind.
+- Stack: Express + TS backend, Next.js 16 (App Router) + React + TS frontend, Firebase Authentication, Prisma ORM, React Query, Tailwind.
 - The old MERN task-manager code is gone; everything follows the target architecture described in `ARCHITECTURE.md`. There is no migration in flight — build new work on the existing patterns.
 
 ## Repository layout
@@ -42,8 +42,9 @@ Operating manual for AI coding agents (opencode, Claude Code, Copilot Workspace,
 | Run backend | `backend/` | `npm run dev` (port 4000; needs `.env` — copy `.env.example`) |
 | Migrate DB | `backend/` | `npx prisma migrate dev --name <change>` |
 | Seed demo data | `backend/` | `npm run db:seed` (reads `SEED_OWNER_UID`) |
-| Backend checks | `backend/` | `npm run typecheck`, `npm run lint`, `npm test` (unit), `npm run build` |
-| Backend e2e | `backend/` | `npm run test:e2e` — needs a scratch Postgres on :5434 (see `tests/setup-env.ts`) plus `npx prisma migrate dev` against it |
+| Backend checks | `backend/` | `npm run typecheck`, `npm run lint`, `npm test` / `npm run test:unit`, `npm run build` |
+| Backend integration | `backend/` | `npm run test:integration` / `npm run test:e2e` — needs a scratch Postgres on :5434 (see `tests/setup-env.ts`) plus `npx prisma migrate dev` against it |
+| Backend regression | `backend/` | `npm run test:regression` — needs the same scratch Postgres as integration tests |
 | Run frontend | `frontend/` | `npm run dev` (port 3000; needs `.env` from `.env.example`) |
 | Frontend checks | `frontend/` | `npm run typecheck`, `npm run lint`, `npm run build` |
 

@@ -168,10 +168,12 @@ Declared and validated in `backend/src/config/env.ts`; mirrored in `.env.example
 
 ## 5. Testing strategy
 
-- **Backend unit (Vitest)**: services with fake repositories — ownership scoping, position math, FK guards. No DB required.
+- **Backend unit (Vitest)**: services with fake repositories — ownership scoping, position math, FK guards. Run `npm test` or `npm run test:unit`; no DB is required.
+- **Backend integration (Vitest + Supertest + PostgreSQL)**: API flows run against a scratch Postgres on port 5434. Run `npm run test:integration` (or its `test:e2e` alias) after applying migrations.
+- **Backend regression (Vitest + Supertest + PostgreSQL)**: isolated tests protect high-risk route ordering and owner-isolation behavior. Run `npm run test:regression` against the same scratch database.
 - **Frontend**: typecheck + lint + build are the current gates; hook tests with `QueryClient` wrapper are the next step.
 - Contract safety: frontend types in `shared/types.ts` must stay in sync with Zod schemas — changing one without the other is a review blocker.
 
 ## 6. Future work (proposals, not commitments)
 
-CI pipeline, Playwright smoke tests, e2e Supertest suite against a throwaway Postgres, BFF/proxy deployment option, activity timeline, CSV import/export.
+Playwright smoke tests, BFF/proxy deployment option, activity timeline, CSV import/export.
