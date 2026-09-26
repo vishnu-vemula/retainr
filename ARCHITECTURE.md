@@ -109,9 +109,9 @@ AuditLog (action × entity per owner: CREATE/UPDATE/DELETE/STAGE_CHANGE)
 
 - Enums include `EngagementType`, `RenewalHealth`, `DealItemKind`, and `ProposalStatus`; existing `DealStage` values remain stable while the UI labels them Lead → Discovery → Scope sent → Client review → Won/Lost.
 - `Deal.position` orders cards inside a stage; `POST /deals` appends at `max+1`; `PATCH /deals/reorder` writes batch updates in a transaction.
-- **Stage business rules** (`DealsService.update`): stage change sets default probability (NEW 10 → NEGOTIATION 75, WON 100, LOST 0), stamps/clears `closedAt`, writes a `STAGE_CHANGE` audit row, and dispatches a deduped `DEAL_WON` notification and onboarding checklist on WON.
+- **Stage business rules** (`DealsService.update`): stage change sets default probability (NEW 10 → NEGOTIATION 75, WON 100, LOST 0), stamps/clears `closedAt` only when the stage actually changes, writes a `STAGE_CHANGE` audit row, and dispatches a deduped `DEAL_WON` notification and onboarding checklist on WON. Editing an already-won deal preserves its original close date.
 - **Quote builder**: `DealItem` rows (product or free text) carry `BASE`, `PACKAGE`, or `ADD_ON`; item mutations recalculate `deal.value`. Three reusable templates append starter quote items.
-- **Proposals**: creation snapshots current quote items and returns a 256-bit share token once. Only its SHA-256 hash is stored. Public read marks viewed; an accepted response validates package/add-on choices, records the decision, sets the deal value to selected items, and moves it to WON. Links expire after 1–90 days. Public routes are capability-token exceptions to the owner query rule; owner list/create remain owner-scoped.
+- **Proposals**: creation snapshots current quote items for open engagements and returns a 256-bit share token once. Only its SHA-256 hash is stored. Public read marks viewed; an accepted response validates package/add-on choices and atomically records the decision, sets the deal value to selected items, moves it to WON, and writes the decision/stage audit rows in `ProposalsRepository`. This is the one cross-entity repository transaction needed to keep an acceptance consistent. A second outstanding proposal cannot overwrite a won or lost engagement, and new proposals cannot be created for closed engagements. The won notification and idempotent onboarding tasks sync after the transaction and can be retried by replaying the accepted response. Links expire after 1–90 days. The public proposal page sends no referrer, is not cacheable, and is excluded from search indexing. Public routes are capability-token exceptions to the owner query rule; owner list/create remain owner-scoped.
 - **Renewals**: the dashboard aggregate scopes won retainers by owner, reports 30/60/90-day windows, inactive accounts, overdue onboarding, MRR and weighted forecast by currency. Notifications sync renewal-due and at-risk alerts on read; there is no scheduler.
 - **Activities**: create/update touches `contact.lastActivityAt` so lists can show recency.
 - Relation deletes: owner cascade (`User`), `SetNull` for contact/company links (history survives).
@@ -139,7 +139,7 @@ src/features/<name>/
 src/shared/               # api-client, firebase, types.ts, format helpers, UI primitives (.tsx)
 ```
 
-Views are `.tsx` (app routes + components); operations are `.ts` (api, hooks, model, lib). Feature components are client components by import chain — every `app/**/page.tsx` is a thin `'use client'` wrapper.
+Views are `.tsx` (app routes + components); operations are `.ts` (api, hooks, model, lib). Workspace and interactive proposal route pages are thin `'use client'` wrappers. Public marketing pages are server components with route metadata; only interactive sections become client components.
 
 ### 3.2 Three-layer data rule (law 5)
 
@@ -178,7 +178,7 @@ Declared and validated in `backend/src/config/env.ts`; mirrored in `.env.example
 ## 5. Testing strategy
 
 - **Backend unit (Vitest)**: services with fake repositories — ownership scoping, position math, FK guards. Run `npm test` or `npm run test:unit`; no DB is required.
-- **Backend integration (Vitest + Supertest + PostgreSQL)**: API flows run against a scratch Postgres on port 5434. Run `npm run test:integration` (or its `test:e2e` alias) after applying migrations.
+- **Backend integration (Vitest + Supertest + PostgreSQL)**: API flows, including public proposal acceptance through onboarding and renewal alerts, run against a scratch Postgres on port 5434. Run `npm run test:integration` (or its `test:e2e` alias) after applying migrations.
 - **Backend regression (Vitest + Supertest + PostgreSQL)**: isolated tests protect high-risk route ordering and owner-isolation behavior. Run `npm run test:regression` against the same scratch database.
 - **Frontend**: typecheck + lint + build are the current gates; hook tests with `QueryClient` wrapper are the next step.
 - Contract safety: frontend types in `shared/types.ts` must stay in sync with Zod schemas — changing one without the other is a review blocker.

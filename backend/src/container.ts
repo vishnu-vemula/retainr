@@ -113,7 +113,15 @@ export function createContainer(): Container {
   const proposalsService = new ProposalsService(
     proposalsRepository,
     { findDetailByIdAndOwner: (id, ownerId) => dealsRepository.findDetailByIdAndOwner(id, ownerId) },
-    { markWon: async (ownerId, dealId, selectedTotal) => { await dealsService.update(ownerId, dealId, { stage: 'WON', value: selectedTotal }); } },
+    { syncWon: async (ownerId, dealId) => {
+      const deal = await dealsRepository.findByIdAndOwner(dealId, ownerId);
+      if (!deal || deal.stage !== 'WON') return;
+      await tasksService.createForWonDeal(ownerId, dealId, deal.contactId);
+      await notificationsService.dispatch(ownerId, {
+        type: 'DEAL_WON', title: `Engagement won: ${deal.title}`,
+        body: `${deal.value} ${deal.currency}`, dedupeKey: `deal-won:${deal.id}`
+      });
+    } },
     auditService
   );
 

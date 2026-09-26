@@ -28,20 +28,21 @@ function buildFixture() {
     list: vi.fn().mockResolvedValue([record]),
     findByTokenHash: vi.fn().mockImplementation(async () => record),
     markViewed: vi.fn().mockResolvedValue(true),
-    resetFailedAcceptance: vi.fn().mockImplementation(async () => {
-      record = { ...record, status: 'VIEWED', selectedPackageId: null, selectedAddonIds: [], respondedAt: null };
+    decline: vi.fn().mockImplementation(async () => {
+      record = { ...record, status: 'DECLINED', selectedPackageId: null, selectedAddonIds: [] };
+      return true;
     }),
-    respond: vi.fn().mockImplementation(async (_hash: string, _now: Date, decision: 'ACCEPTED' | 'DECLINED', selectedPackageId: string | null, selectedAddonIds: string[]) => {
-      record = { ...record, status: decision, selectedPackageId, selectedAddonIds };
+    accept: vi.fn().mockImplementation(async (_hash: string, _ownerId: string, _dealId: string, _now: Date, selectedPackageId: string | null, selectedAddonIds: string[]) => {
+      record = { ...record, status: 'ACCEPTED', selectedPackageId, selectedAddonIds };
       return true;
     })
   };
   const deals = { findDetailByIdAndOwner: vi.fn().mockResolvedValue({
-    id: 'd1', title: snapshot.title, currency: snapshot.currency, engagementType: snapshot.engagementType,
+    id: 'd1', title: snapshot.title, stage: 'PROPOSAL' as const, currency: snapshot.currency, engagementType: snapshot.engagementType,
     oneTimeValue: snapshot.oneTimeValue, monthlyRecurringValue: snapshot.monthlyRecurringValue,
     serviceStartDate: null, renewalDate: null, items: snapshot.items
   }) };
-  const acceptance = { markWon: vi.fn().mockResolvedValue(undefined) };
+  const acceptance = { syncWon: vi.fn().mockResolvedValue(undefined) };
   const audit = { log: vi.fn().mockResolvedValue(undefined) };
   const service = new ProposalsService(repo, deals, acceptance, audit);
   return { service, repo, deals, acceptance, audit, setRecord: (patch: Partial<ProposalRecord>) => { record = { ...record, ...patch }; } };
@@ -64,37 +65,52 @@ describe('ProposalsService', () => {
     expect(repo.create).not.toHaveBeenCalled();
   });
 
+  it('does not create an unusable proposal for a closed deal', async () => {
+    const { service, repo, deals } = buildFixture();
+    deals.findDetailByIdAndOwner.mockResolvedValue({ ...(await deals.findDetailByIdAndOwner()), stage: 'WON' });
+    await expect(service.create('u1', { dealId: 'd1', expiresInDays: 14 })).rejects.toMatchObject({ code: 'DEAL_CLOSED' });
+    expect(repo.create).not.toHaveBeenCalled();
+  });
+
   it('requires an offered package and validates add-on IDs', async () => {
     const { service, repo } = buildFixture();
     await expect(service.respond('token', { decision: 'ACCEPTED', selectedPackageId: null, selectedAddonIds: [] })).rejects.toMatchObject({ code: 'INVALID_PACKAGE' });
     await expect(service.respond('token', { decision: 'ACCEPTED', selectedPackageId: 'package-a', selectedAddonIds: ['foreign'] })).rejects.toMatchObject({ code: 'INVALID_ADD_ON' });
-    expect(repo.respond).not.toHaveBeenCalled();
+    expect(repo.accept).not.toHaveBeenCalled();
+  });
+
+  it('rejects a selected quote total above the deal value limit', async () => {
+    const { service, repo, setRecord } = buildFixture();
+    setRecord({ snapshot: { ...snapshot, items: [{ id: 'base', description: 'Large scope', quantity: 2, unitPrice: 1_000_000_000, kind: 'BASE' }] } });
+    await expect(service.respond('token', { decision: 'ACCEPTED', selectedPackageId: null, selectedAddonIds: [] }))
+      .rejects.toMatchObject({ code: 'QUOTE_TOTAL_OUT_OF_RANGE' });
+    expect(repo.accept).not.toHaveBeenCalled();
   });
 
   it('records a client choice and wins the deal at the selected total', async () => {
-    const { service, acceptance, audit } = buildFixture();
+    const { service, acceptance, repo } = buildFixture();
     const result = await service.respond('token', { decision: 'ACCEPTED', selectedPackageId: 'package-b', selectedAddonIds: ['addon'] });
     expect(result.status).toBe('ACCEPTED');
-    expect(acceptance.markWon).toHaveBeenCalledWith('u1', 'd1', 3400);
-    expect(audit.log).toHaveBeenCalledWith('u1', 'UPDATE', 'PROPOSAL', 'p1', 'Client accepted proposal');
+    expect(repo.accept).toHaveBeenCalledWith(expect.any(String), 'u1', 'd1', expect.any(Date), 'package-b', ['addon'], 3400);
+    expect(acceptance.syncWon).toHaveBeenCalledWith('u1', 'd1');
   });
 
-  it('does not win a deal again when an accepted response is replayed', async () => {
+  it('retries idempotent won side effects when an accepted response is replayed', async () => {
     const { service, acceptance, setRecord } = buildFixture();
     setRecord({ status: 'ACCEPTED', selectedPackageId: 'package-a', selectedAddonIds: [] });
     await service.respond('token', { decision: 'ACCEPTED', selectedPackageId: 'package-a', selectedAddonIds: [] });
-    expect(acceptance.markWon).not.toHaveBeenCalled();
+    expect(acceptance.syncWon).toHaveBeenCalledWith('u1', 'd1');
   });
 
-  it('restores a proposal for retry if applying an acceptance fails', async () => {
+  it('keeps an atomic acceptance when a derived side effect fails and repairs it on retry', async () => {
     const { service, acceptance, repo } = buildFixture();
-    acceptance.markWon.mockRejectedValueOnce(new Error('Deal update failed'));
+    acceptance.syncWon.mockRejectedValueOnce(new Error('Notification failed'));
     await expect(service.respond('token', { decision: 'ACCEPTED', selectedPackageId: 'package-a', selectedAddonIds: [] }))
-      .rejects.toThrow('Deal update failed');
-    expect(repo.resetFailedAcceptance).toHaveBeenCalledOnce();
+      .rejects.toThrow('Notification failed');
     await expect(service.respond('token', { decision: 'ACCEPTED', selectedPackageId: 'package-a', selectedAddonIds: [] }))
       .resolves.toMatchObject({ status: 'ACCEPTED' });
-    expect(acceptance.markWon).toHaveBeenCalledTimes(2);
+    expect(repo.accept).toHaveBeenCalledOnce();
+    expect(acceptance.syncWon).toHaveBeenCalledTimes(2);
   });
 
   it('does not allow an expired proposal to be viewed or answered', async () => {
@@ -102,7 +118,7 @@ describe('ProposalsService', () => {
     setRecord({ expiresAt: new Date(Date.now() - 1000) });
     await expect(service.getPublic('token')).rejects.toMatchObject({ code: 'PROPOSAL_EXPIRED' });
     await expect(service.respond('token', { decision: 'DECLINED' })).rejects.toMatchObject({ code: 'PROPOSAL_EXPIRED' });
-    expect(repo.respond).not.toHaveBeenCalled();
+    expect(repo.decline).not.toHaveBeenCalled();
   });
 
   it('audits the first view without exposing the owner record', async () => {

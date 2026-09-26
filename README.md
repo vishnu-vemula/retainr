@@ -36,7 +36,7 @@ A light, warm-neutral UI with a red-orange accent. The public website uses big d
 - **Agency pipeline** — Lead → Discovery → Scope sent → Client review → Won/Lost. Stored enum values stay `NEW`, `QUALIFIED`, `PROPOSAL`, `NEGOTIATION`, `WON`, `LOST` for existing data.
 - **Engagements** — project or retainer, one-time and monthly values, service/renewal/review dates, renewal health and probability, loss and churn reasons
 - **Quote builder** — product catalog, base/package/add-on line items, and paid ads, SEO, and website/maintenance templates. Template prices are examples in the deal's currency; review them before sharing.
-- **Shareable proposals** — immutable quote snapshots, expiring random links, client package/add-on selection, and viewed/accepted/declined tracking. Acceptance marks the engagement won at the selected quote total; it is not an electronic signature or payment.
+- **Shareable proposals** — immutable quote snapshots for open engagements, expiring random links, client package/add-on selection, and viewed/accepted/declined tracking. Acceptance atomically marks the engagement won at the selected quote total; stale proposals cannot overwrite a closed engagement. It is not an electronic signature or payment.
 - **Activities** — notes, calls, emails, meetings on a timeline per contact/deal; contacts track last-touch time
 - **Tags** — colored tags on contacts and deals, managed in Settings
 - **Tasks** — activities linked to contacts/deals, priorities, due dates, overdue tracking, quick-complete; won deals create five idempotent onboarding handoffs
@@ -156,6 +156,8 @@ Sign up in the app with an email listed in `BOOTSTRAP_ADMIN_EMAILS` — you'll g
 | `npm run db:seed` | `backend` | Demo data |
 | `npm run db:studio` | `backend` | Prisma Studio |
 | `npm run dev` / `build` / `start` / `lint` / `typecheck` | `frontend` | Next.js app |
+
+Run `test:integration` and `test:regression` sequentially when they point at the same scratch database: both suites reset their fixtures before running.
 
 ## Continuous integration
 

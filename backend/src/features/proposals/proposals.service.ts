@@ -8,6 +8,7 @@ export interface ProposalDealSource {
   findDetailByIdAndOwner(id: string, ownerId: string): Promise<{
     id: string;
     title: string;
+    stage: 'NEW' | 'QUALIFIED' | 'PROPOSAL' | 'NEGOTIATION' | 'WON' | 'LOST';
     currency: string;
     engagementType: 'PROJECT' | 'RETAINER';
     oneTimeValue: number;
@@ -19,7 +20,7 @@ export interface ProposalDealSource {
 }
 
 export interface ProposalAcceptanceHandler {
-  markWon(ownerId: string, dealId: string, selectedTotal: number): Promise<void>;
+  syncWon(ownerId: string, dealId: string): Promise<void>;
 }
 
 export interface PublicProposal {
@@ -46,6 +47,9 @@ export class ProposalsService {
   async create(ownerId: string, input: CreateProposalInput): Promise<{ proposal: ProposalRecord; shareToken: string }> {
     const deal = await this.deals.findDetailByIdAndOwner(input.dealId, ownerId);
     if (!deal) throw AppError.notFound('Deal');
+    if (deal.stage === 'WON' || deal.stage === 'LOST') {
+      throw new AppError(422, 'DEAL_CLOSED', 'Create proposals only for open engagements');
+    }
     if (deal.items.length === 0) throw new AppError(422, 'EMPTY_PROPOSAL', 'Add quote items before creating a proposal');
     const snapshot: ProposalSnapshot = {
       title: deal.title,
@@ -107,23 +111,24 @@ export class ProposalsService {
     }
     if (proposal.status === 'ACCEPTED' && input.decision === 'ACCEPTED' && proposal.selectedPackageId === packageId &&
       JSON.stringify(proposal.selectedAddonIds) === JSON.stringify(addonIds)) {
+      await this.acceptance.syncWon(proposal.ownerId, proposal.dealId);
       return this.toPublic(proposal);
     }
     if (proposal.status === 'ACCEPTED' || proposal.status === 'DECLINED') {
       throw new AppError(409, 'PROPOSAL_DECIDED', 'This proposal has already been answered');
     }
-    const changed = await this.repo.respond(tokenHash, now, input.decision, packageId, addonIds);
-    if (!changed) throw new AppError(409, 'PROPOSAL_DECIDED', 'This proposal has already been answered');
+    const selectedTotal = input.decision === 'ACCEPTED' ? this.selectedTotal(snapshot, packageId, addonIds) : 0;
+    if (!Number.isFinite(selectedTotal) || selectedTotal > 1_000_000_000) {
+      throw new AppError(422, 'QUOTE_TOTAL_OUT_OF_RANGE', 'The selected quote total exceeds the supported deal value');
+    }
+    const changed = input.decision === 'ACCEPTED'
+      ? await this.repo.accept(tokenHash, proposal.ownerId, proposal.dealId, now, packageId, addonIds, selectedTotal)
+      : await this.repo.decline(tokenHash, now);
+    if (!changed) throw new AppError(409, 'PROPOSAL_DECIDED', 'This proposal or engagement has already been decided');
     const updated = await this.repo.findByTokenHash(tokenHash);
     if (!updated) throw AppError.notFound('Proposal');
     if (input.decision === 'ACCEPTED') {
-      try {
-        await this.acceptance.markWon(updated.ownerId, updated.dealId, this.selectedTotal(snapshot, packageId, addonIds));
-        await this.audit.log(updated.ownerId, 'UPDATE', 'PROPOSAL', updated.id, 'Client accepted proposal');
-      } catch (error) {
-        await this.repo.resetFailedAcceptance(tokenHash, now, proposal.status === 'VIEWED' ? 'VIEWED' : 'CREATED');
-        throw error;
-      }
+      await this.acceptance.syncWon(updated.ownerId, updated.dealId);
     } else {
       await this.audit.log(updated.ownerId, 'UPDATE', 'PROPOSAL', updated.id, 'Client declined proposal');
     }

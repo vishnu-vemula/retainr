@@ -33,6 +33,7 @@ beforeAll(async () => {
   await prisma.auditLog.deleteMany();
   await prisma.task.deleteMany();
   await prisma.activity.deleteMany();
+  await prisma.proposal.deleteMany();
   await prisma.dealItem.deleteMany();
   await prisma.deal.deleteMany();
   await prisma.contact.deleteMany();
@@ -206,6 +207,107 @@ it('applies stage rules and emits a deduped DEAL_WON notification', async () => 
 
   const read = await request(app).post('/api/v1/notifications/read').set(as('e2e')).send({ all: true });
   expect(read.body.data.unread).toBe(0);
+});
+
+it('keeps the original won date when changing a won deal without changing stage', async () => {
+  const closedAt = new Date('2026-08-20T10:00:00.000Z');
+  await prisma.deal.update({ where: { id_ownerId: { id: dealId, ownerId: 'e2e' } }, data: { closedAt } });
+  const edited = await request(app).patch(`/api/v1/deals/${dealId}`).set(as('e2e')).send({ stage: 'WON', title: 'Big deal renewed' });
+  expect(edited.status).toBe(200);
+  expect(edited.body.data.closedAt).toBe(closedAt.toISOString());
+});
+
+it('takes a retainer from a public proposal to onboarding and renewal alerts', async () => {
+  const renewalDate = new Date(Date.now() + 15 * 86_400_000).toISOString();
+  const created = await request(app).post('/api/v1/deals').set(as('e2e')).send({
+    title: 'Proposal journey', value: 0, companyId, contactId,
+    engagementType: 'RETAINER', monthlyRecurringValue: 700, renewalDate
+  });
+  expect(created.status).toBe(201);
+  const proposalDealId = created.body.data.id as string;
+  for (const item of [
+    { description: 'Setup', kind: 'BASE', unitPrice: 100 },
+    { description: 'Growth', kind: 'PACKAGE', unitPrice: 500 },
+    { description: 'Scale', kind: 'PACKAGE', unitPrice: 700 },
+    { description: 'Creative', kind: 'ADD_ON', unitPrice: 80 }
+  ]) {
+    const added = await request(app).post(`/api/v1/deals/${proposalDealId}/items`).set(as('e2e')).send(item);
+    expect(added.status).toBe(201);
+  }
+  const foreign = await request(app).post('/api/v1/proposals').set(as('member2')).send({ dealId: proposalDealId });
+  expect(foreign.status).toBe(404);
+
+  const made = await request(app).post('/api/v1/proposals').set(as('e2e')).send({ dealId: proposalDealId });
+  expect(made.status).toBe(201);
+  const token = made.body.data.shareToken as string;
+  const staleProposal = await request(app).post('/api/v1/proposals').set(as('e2e')).send({ dealId: proposalDealId });
+  expect(staleProposal.status).toBe(201);
+  const staleToken = staleProposal.body.data.shareToken as string;
+  expect(token.length).toBeGreaterThan(30);
+  const listed = await request(app).get(`/api/v1/proposals?dealId=${proposalDealId}`).set(as('e2e'));
+  expect(listed.status).toBe(200);
+  expect(JSON.stringify(listed.body)).not.toContain(token);
+
+  const viewed = await request(app).get(`/api/v1/proposals/public/${token}`);
+  expect(viewed.status).toBe(200);
+  expect(viewed.body.data.status).toBe('VIEWED');
+  expect(viewed.body.data).not.toHaveProperty('ownerId');
+  const snapshotItems = viewed.body.data.snapshot.items as { id: string; description: string }[];
+  const scaleId = snapshotItems.find((item) => item.description === 'Scale')?.id;
+  const creativeId = snapshotItems.find((item) => item.description === 'Creative')?.id;
+  expect(scaleId).toBeTruthy();
+  expect(creativeId).toBeTruthy();
+
+  const invalid = await request(app).post(`/api/v1/proposals/public/${token}/respond`).send({
+    decision: 'ACCEPTED', selectedPackageId: 'foreign', selectedAddonIds: []
+  });
+  expect(invalid.status).toBe(422);
+  const response = { decision: 'ACCEPTED', selectedPackageId: scaleId, selectedAddonIds: [creativeId] };
+  const accepted = await request(app).post(`/api/v1/proposals/public/${token}/respond`).send(response);
+  expect(accepted.status).toBe(200);
+  expect(accepted.body.data.status).toBe('ACCEPTED');
+
+  const deal = await request(app).get(`/api/v1/deals/${proposalDealId}`).set(as('e2e'));
+  expect(deal.body.data.stage).toBe('WON');
+  expect(deal.body.data.value).toBe(880);
+  expect(deal.body.data.closedAt).not.toBeNull();
+  const tasks = await request(app).get(`/api/v1/tasks?dealId=${proposalDealId}`).set(as('e2e'));
+  expect(tasks.body.data.items.filter((task: { onboardingKey: string | null }) => task.onboardingKey)).toHaveLength(5);
+
+  const replay = await request(app).post(`/api/v1/proposals/public/${token}/respond`).send(response);
+  expect(replay.status).toBe(200);
+  const staleAcceptance = await request(app).post(`/api/v1/proposals/public/${staleToken}/respond`).send(response);
+  expect(staleAcceptance.status).toBe(409);
+  const closedProposal = await request(app).post('/api/v1/proposals').set(as('e2e')).send({ dealId: proposalDealId });
+  expect(closedProposal.status).toBe(422);
+  const unchanged = await request(app).get(`/api/v1/deals/${proposalDealId}`).set(as('e2e'));
+  expect(unchanged.body.data.value).toBe(880);
+  const tasksAfterReplay = await request(app).get(`/api/v1/tasks?dealId=${proposalDealId}`).set(as('e2e'));
+  expect(tasksAfterReplay.body.data.items.filter((task: { onboardingKey: string | null }) => task.onboardingKey)).toHaveLength(5);
+  const renewals = await request(app).get('/api/v1/dashboard/stats').set(as('e2e'));
+  expect(renewals.body.data.renewals.items.some((item: { id: string }) => item.id === proposalDealId)).toBe(true);
+  expect(renewals.body.data.renewals.within30).toBeGreaterThanOrEqual(1);
+  const notifications = await request(app).get('/api/v1/notifications').set(as('e2e'));
+  expect(notifications.body.data.items.some((item: { type: string }) => item.type === 'RENEWAL_DUE')).toBe(true);
+});
+
+it('allows only one concurrent proposal acceptance for an engagement', async () => {
+  const deal = await request(app).post('/api/v1/deals').set(as('e2e')).send({ title: 'Race-safe scope', value: 0 });
+  expect(deal.status).toBe(201);
+  const raceDealId = deal.body.data.id as string;
+  const item = await request(app).post(`/api/v1/deals/${raceDealId}/items`).set(as('e2e')).send({ description: 'Scope', unitPrice: 200 });
+  expect(item.status).toBe(201);
+  const proposals = await Promise.all([1, 2].map(() => request(app).post('/api/v1/proposals').set(as('e2e')).send({ dealId: raceDealId })));
+  expect(proposals.map((response) => response.status)).toEqual([201, 201]);
+  const decisions = await Promise.all(proposals.map((proposal) => request(app)
+    .post(`/api/v1/proposals/public/${proposal.body.data.shareToken as string}/respond`)
+    .send({ decision: 'ACCEPTED', selectedAddonIds: [] })));
+  expect(decisions.map((response) => response.status).sort()).toEqual([200, 409]);
+  const saved = await request(app).get(`/api/v1/deals/${raceDealId}`).set(as('e2e'));
+  expect(saved.body.data.stage).toBe('WON');
+  expect(saved.body.data.value).toBe(200);
+  const tasks = await request(app).get(`/api/v1/tasks?dealId=${raceDealId}`).set(as('e2e'));
+  expect(tasks.body.data.items.filter((task: { onboardingKey: string | null }) => task.onboardingKey)).toHaveLength(5);
 });
 
 it('syncs overdue tasks into notifications on read', async () => {

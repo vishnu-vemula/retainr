@@ -62,7 +62,7 @@ src/
 ### Rules (from [ARCHITECTURE.md](../ARCHITECTURE.md))
 
 - **Three-layer data fetching**: `api/` → `hooks/` → `components/`. A component calling `fetch` directly is a bug.
-- **Thin pages**: every `app/**/page.tsx` is a `'use client'` wrapper that renders a feature component — no business logic in routes.
+- **Thin pages**: workspace and interactive proposal route pages are `'use client'` wrappers; public marketing pages stay server-rendered and export metadata. Business logic lives in feature folders.
 - **Auth**: Firebase SDK (client) → `Authorization: Bearer <ID token>` on every API call; the `(crm)` layout and the users page enforce login/role redirects.
 - **Env vars**: only `NEXT_PUBLIC_*` (inlined at build time) — see `.env.example`.
 

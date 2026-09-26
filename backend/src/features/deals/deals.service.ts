@@ -98,6 +98,7 @@ export class DealsService {
     const nextStage = input.stage;
     const stageChanged = nextStage !== undefined && nextStage !== existing.stage;
     const patch = { ...input };
+    if (!stageChanged) delete patch.stage;
     if (stageChanged && nextStage !== undefined && input.probability === undefined) {
       patch.probability = DEFAULT_PROBABILITY[nextStage];
     }

@@ -143,6 +143,16 @@ describe('DealsService', () => {
     expect(deps.notifications.dispatch).toHaveBeenCalledWith('u1', expect.objectContaining({ dedupeKey: 'deal-won:d1' }));
   });
 
+  it('preserves the original close date when an already won deal is edited', async () => {
+    const closedAt = new Date('2026-08-20T10:00:00.000Z');
+    const won = { id: 'd1', ownerId: 'u1', stage: 'WON', title: 'Won deal', closedAt } as DealWithRelations;
+    const repo = buildFakeRepo({ findByIdAndOwner: vi.fn().mockResolvedValue(won) });
+    const deps = buildDeps();
+    const service = new DealsService(repo, deps.audit, deps.notifications, deps.tags, deps.onboarding);
+    await service.update('u1', 'd1', { stage: 'WON', title: 'Renamed' });
+    expect(repo.update).toHaveBeenCalledWith('d1', 'u1', expect.not.objectContaining({ stage: 'WON' }));
+  });
+
   it('clears a lost reason when a deal moves to won', async () => {
     const lost = { id: 'd1', ownerId: 'u1', stage: 'LOST', title: 'Lost deal', lostReason: 'Budget' } as DealWithRelations;
     const repo = buildFakeRepo({ findByIdAndOwner: vi.fn().mockResolvedValue(lost) });
