@@ -87,17 +87,19 @@ export function AppNavbar() {
   const router = useRouter()
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [menuPathname, setMenuPathname] = useState(pathname)
   const [scrolled, setScrolled] = useState(false)
+
+  if (menuPathname !== pathname) {
+    setMenuPathname(pathname)
+    setMenuOpen(false)
+  }
 
   const isAdmin = profile?.role === 'ADMIN'
   const settingsItems = visibleFor(settingsNav, isAdmin)
   const settingsActive = settingsItems.some((item) => isNavActive(pathname, item.to))
   const displayName = profile?.displayName ?? firebaseUser?.displayName ?? 'Account'
   const email = firebaseUser?.email ?? ''
-
-  useEffect(() => {
-    setMenuOpen(false)
-  }, [pathname])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)

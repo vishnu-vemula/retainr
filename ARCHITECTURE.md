@@ -145,7 +145,7 @@ Views are `.tsx` (app routes + components); operations are `.ts` (api, hooks, mo
 
 ### 3.4 UI system
 
-- **Theme tokens** live in `app/globals.css` (`:root` HSL variables: light warm-neutral surfaces, red-orange `--primary`, dark `--ink` for high-emphasis pills) and are exposed through `tailwind.config.js` (`primary`, `ink`, the `brand-50…950` scale, `shadow-soft/lift/glow`, `font-display`). Components use tokens, never raw hex.
+- **Theme tokens** live in `app/globals.css` (`:root` HSL variables: light warm-neutral surfaces, red-orange `--primary`, dark `--ink` for high-emphasis pills) and are exposed through `tailwind.config.mjs` (`primary`, `ink`, the `brand-50…950` scale, `shadow-soft/lift/glow`, `font-display`). Components use tokens, never raw hex.
 - **Primitives** in `shared/components/ui/` are the only place base styling lives (pill buttons incl. the `ink` variant, rounded-3xl cards, soft-focus inputs); feature components compose them.
 - **Shell**: `AppShell` = `AppNavbar` (floating top bar: pill nav, Settings menu, Ctrl/⌘+K `GlobalSearch`, notifications, account menu; collapses to a menu below `xl`) + `AppFooter`. Both read their links from `shared/lib/navigation.ts` — add new routes there.
 - **Brand**: `BrandMark`/`BrandLogo` (`shared/components/brand-logo.tsx`) render the logo as inline SVG in `currentColor`, so it always matches `--primary` (or white via `inverted`). `public/favicon.svg` and `public/logo.svg` are the static copies.
