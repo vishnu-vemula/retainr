@@ -46,6 +46,24 @@ enum DealSource {
   OTHER
 }
 
+enum EngagementType {
+  PROJECT
+  RETAINER
+}
+
+enum AccountHealth {
+  UNKNOWN
+  HEALTHY
+  AT_RISK
+}
+
+enum ProposalStatus {
+  PUBLISHED
+  ACCEPTED
+  DECLINED
+  REVOKED
+}
+
 enum TaskStatus {
   TODO
   IN_PROGRESS
@@ -69,6 +87,7 @@ enum ActivityType {
 enum NotificationType {
   TASK_OVERDUE
   DEAL_WON
+  RENEWAL_DUE
 }
 
 enum AuditAction {
@@ -105,6 +124,7 @@ model User {
   activities  Activity[]
   dealItems   DealItem[]
   notifications Notification[]
+  proposals   Proposal[]
 }
 
 model Company {
@@ -200,6 +220,13 @@ model Deal {
   stage             DealStage    @default(NEW)
   position          Float        @default(0)
   probability       Int          @default(10)
+  engagementType    EngagementType @default(PROJECT)
+  monthlyValue      Float          @default(0)
+  serviceStartDate  DateTime?
+  renewalDate       DateTime?
+  nextReviewDate    DateTime?
+  health            AccountHealth  @default(UNKNOWN)
+  onboardingStartedAt DateTime?
   source            DealSource?
   nextStep          String?
   lostReason        String?
@@ -216,11 +243,33 @@ model Deal {
   activities  Activity[]
   tasks       Task[]
   tags        Tag[]
+  proposals   Proposal[]
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
   @@index([ownerId, stage, position])
+  @@index([ownerId, engagementType, renewalDate])
   @@unique([id, ownerId])
+}
+
+model Proposal {
+  id          String         @id @default(cuid())
+  dealId      String
+  deal        Deal           @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  ownerId     String
+  owner       User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  tokenHash   String         @unique
+  title       String
+  clientName  String?
+  message     String?
+  snapshot    Json
+  status      ProposalStatus @default(PUBLISHED)
+  expiresAt   DateTime
+  viewedAt    DateTime?
+  respondedAt DateTime?
+  createdAt   DateTime       @default(now())
+
+  @@index([ownerId, dealId, createdAt])
 }
 
 model DealItem {
@@ -275,6 +324,7 @@ model Task {
   contactId   String?
   contact     Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
   dealId      String?
+  onboardingKey String?     @unique
   deal        Deal?        @relation(fields: [dealId], references: [id], onDelete: SetNull)
   ownerId     String
   owner       User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
