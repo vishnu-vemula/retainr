@@ -5,7 +5,7 @@ import { bootstrapAdminEmails, env } from '../src/config/env';
 const prisma = new PrismaClient();
 
 const ownerUid = env.SEED_OWNER_UID ?? 'seed-demo-owner';
-const ownerEmail = bootstrapAdminEmails[0] ?? 'demo@ultra-tasker.local';
+const ownerEmail = bootstrapAdminEmails[0] ?? 'demo@retainr.local';
 
 const days = (n: number): Date => new Date(Date.now() + n * 24 * 60 * 60 * 1000);
 
@@ -92,8 +92,8 @@ async function main(): Promise<void> {
   ]);
 
   const [core, pro, support] = await Promise.all([
-    prisma.product.create({ data: { name: 'Ultra Tasker Core', sku: 'UTC-01', price: 49, currency: 'USD', ownerId: ownerUid } }),
-    prisma.product.create({ data: { name: 'Ultra Tasker Pro', sku: 'UTP-02', price: 99, currency: 'USD', ownerId: ownerUid } }),
+    prisma.product.create({ data: { name: 'Retainr Core', sku: 'RTN-01', price: 49, currency: 'USD', ownerId: ownerUid } }),
+    prisma.product.create({ data: { name: 'Retainr Pro', sku: 'RTN-02', price: 99, currency: 'USD', ownerId: ownerUid } }),
     prisma.product.create({ data: { name: 'Onboarding & Support', sku: 'SUP-03', price: 1500, currency: 'USD', ownerId: ownerUid } })
   ]);
 
@@ -116,7 +116,7 @@ async function main(): Promise<void> {
 
   await prisma.dealItem.createMany({
     data: [
-      { dealId: deals[0]!.id, ownerId: ownerUid, productId: pro.id, description: 'Ultra Tasker Pro ×20 seats', quantity: 20, unitPrice: 99 },
+      { dealId: deals[0]!.id, ownerId: ownerUid, productId: pro.id, description: 'Retainr Pro ×20 seats', quantity: 20, unitPrice: 99 },
       { dealId: deals[0]!.id, ownerId: ownerUid, productId: support.id, description: 'Onboarding package', quantity: 1, unitPrice: 4200 },
       { dealId: deals[1]!.id, ownerId: ownerUid, productId: core.id, description: 'Core pilot ×10 seats', quantity: 10, unitPrice: 49 }
     ]

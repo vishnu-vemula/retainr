@@ -137,7 +137,7 @@ export function AppNavbar() {
           <Link
             href="/"
             className="rounded-xl pr-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            aria-label="Ultra Tasker home"
+            aria-label="Retainr home"
           >
             <BrandLogo hideWordmarkOnMobile />
           </Link>

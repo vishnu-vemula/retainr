@@ -85,7 +85,7 @@ export function AppFooter() {
         </div>
 
         <div className="relative flex flex-col-reverse gap-4 border-t border-border/60 px-6 py-5 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-10">
-          <p>© {year} Ultra Tasker. All rights reserved.</p>
+          <p>© {year} Retainr. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <span className="hidden sm:inline">Built with Next.js · Firebase · Prisma</span>
             <button
@@ -105,7 +105,7 @@ export function AppFooter() {
           aria-hidden="true"
           className="pointer-events-none -mb-[0.2em] -mt-4 select-none sm:-mt-10 whitespace-nowrap bg-gradient-to-b from-brand-500/[0.14] to-brand-500/0 bg-clip-text px-4 text-center font-display text-[clamp(4.5rem,17vw,15rem)] font-semibold leading-none tracking-[-0.06em] text-transparent"
         >
-          ultratasker
+          retainr
         </p>
       </div>
     </footer>

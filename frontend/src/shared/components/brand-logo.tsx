@@ -69,7 +69,7 @@ export function BrandLogo({ className, inverted = false, hideWordmarkOnMobile = 
           hideWordmarkOnMobile && 'hidden sm:inline',
         )}
       >
-        Ultra<span className={inverted ? 'text-white/75' : 'text-primary'}>Tasker</span>
+        Retain<span className={inverted ? 'text-white/75' : 'text-primary'}>r</span>
       </span>
     </span>
   )

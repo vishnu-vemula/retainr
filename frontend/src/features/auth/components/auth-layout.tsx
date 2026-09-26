@@ -120,7 +120,7 @@ export function AuthLayout({ eyebrow, title, description, children, footer }: Au
       <ShowcasePanel />
       <div className="flex flex-col rounded-[32px] border border-border/60 bg-card px-6 py-6 shadow-soft sm:px-10">
         <div className="flex items-center justify-between">
-          <Link href="/" aria-label="Ultra Tasker home">
+          <Link href="/" aria-label="Retainr home">
             <BrandLogo />
           </Link>
           <span className="inline-flex items-center gap-2 rounded-full border border-border/70 px-3 py-1 text-xs font-medium text-muted-foreground">
@@ -135,7 +135,7 @@ export function AuthLayout({ eyebrow, title, description, children, footer }: Au
           <div className="mt-8 text-center text-sm text-muted-foreground">{footer}</div>
         </div>
         <p className="text-center text-xs text-muted-foreground" suppressHydrationWarning>
-          © {new Date().getFullYear()} Ultra Tasker · Secured by Firebase Authentication
+          © {new Date().getFullYear()} Retainr · Secured by Firebase Authentication
         </p>
       </div>
     </div>

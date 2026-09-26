@@ -4,7 +4,7 @@ import { env } from './config/env';
 
 const app = createApp();
 const server = app.listen(env.PORT, () => {
-  console.log(`Ultra Tasker API listening on port ${env.PORT} (${env.NODE_ENV})`);
+  console.log(`Retainr API listening on port ${env.PORT} (${env.NODE_ENV})`);
 });
 
 const shutdown = (signal: string): void => {

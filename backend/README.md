@@ -1,4 +1,4 @@
-# Ultra Tasker — Backend
+# Retainr — Backend
 
 Express + TypeScript + Prisma (PostgreSQL) + Firebase Auth CRM API.
 
