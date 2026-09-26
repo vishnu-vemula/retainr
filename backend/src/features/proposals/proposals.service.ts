@@ -19,7 +19,7 @@ export interface ProposalDealSource {
 }
 
 export interface ProposalAcceptanceHandler {
-  markWon(ownerId: string, dealId: string): Promise<void>;
+  markWon(ownerId: string, dealId: string, selectedTotal: number): Promise<void>;
 }
 
 export interface PublicProposal {
@@ -105,7 +105,7 @@ export class ProposalsService {
     }
     if (proposal.status === 'ACCEPTED' && input.decision === 'ACCEPTED' && proposal.selectedPackageId === packageId &&
       JSON.stringify(proposal.selectedAddonIds) === JSON.stringify(addonIds)) {
-      await this.acceptance.markWon(proposal.ownerId, proposal.dealId);
+      await this.acceptance.markWon(proposal.ownerId, proposal.dealId, this.selectedTotal(snapshot, packageId, addonIds));
       return this.toPublic(proposal);
     }
     if (proposal.status === 'ACCEPTED' || proposal.status === 'DECLINED') {
@@ -116,7 +116,7 @@ export class ProposalsService {
     const updated = await this.repo.findByTokenHash(tokenHash);
     if (!updated) throw AppError.notFound('Proposal');
     await this.audit.log(updated.ownerId, 'UPDATE', 'PROPOSAL', updated.id, `Client ${input.decision.toLowerCase()} proposal`);
-    if (input.decision === 'ACCEPTED') await this.acceptance.markWon(updated.ownerId, updated.dealId);
+    if (input.decision === 'ACCEPTED') await this.acceptance.markWon(updated.ownerId, updated.dealId, this.selectedTotal(snapshot, packageId, addonIds));
     return this.toPublic(updated);
   }
 
@@ -129,5 +129,11 @@ export class ProposalsService {
       selectedPackageId: proposal.selectedPackageId,
       selectedAddonIds: proposal.selectedAddonIds
     };
+  }
+
+  private selectedTotal(snapshot: ProposalSnapshot, packageId: string | null, addonIds: string[]): number {
+    return snapshot.items
+      .filter((item) => item.kind === 'BASE' || (item.kind === 'PACKAGE' && item.id === packageId) || (item.kind === 'ADD_ON' && addonIds.includes(item.id)))
+      .reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
   }
 }

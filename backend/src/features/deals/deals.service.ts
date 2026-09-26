@@ -70,6 +70,7 @@ export class DealsService {
     const maxPosition = await this.repo.maxPositionInStage(ownerId, stage);
     const deal = await this.repo.create(ownerId, {
       ...input,
+      oneTimeValue: input.oneTimeValue ?? (input.engagementType === 'RETAINER' ? 0 : input.value),
       stage,
       probability: input.probability ?? DEFAULT_PROBABILITY[stage],
       position: maxPosition + 1

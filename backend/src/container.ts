@@ -113,7 +113,7 @@ export function createContainer(): Container {
   const proposalsService = new ProposalsService(
     proposalsRepository,
     { findDetailByIdAndOwner: (id, ownerId) => dealsRepository.findDetailByIdAndOwner(id, ownerId) },
-    { markWon: async (ownerId, dealId) => { await dealsService.update(ownerId, dealId, { stage: 'WON' }); } },
+    { markWon: async (ownerId, dealId, selectedTotal) => { await dealsService.update(ownerId, dealId, { stage: 'WON', value: selectedTotal }); } },
     auditService
   );
 

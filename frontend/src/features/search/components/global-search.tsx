@@ -4,7 +4,8 @@ import { Building2, KanbanSquare, Loader2, Search, UsersRound } from 'lucide-rea
 import { Input } from '../../../shared/components/ui/input'
 import { cn } from '../../../shared/lib/utils'
 import { useDebouncedValue } from '../../../shared/hooks/use-debounced-value'
-import { formatCurrency, titleCase } from '../../../shared/lib/format'
+import { formatCurrency } from '../../../shared/lib/format'
+import { DEAL_STAGE_LABELS } from '../../../shared/types'
 import { useSearch } from '../hooks/use-search'
 
 interface GlobalSearchProps {
@@ -160,7 +161,7 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
                             {deal.title}
                           </span>
                           <span className="shrink-0 text-xs text-muted-foreground/70">
-                            {titleCase(deal.stage)} · {formatCurrency(deal.value, deal.currency)}
+                            {DEAL_STAGE_LABELS[deal.stage]} · {formatCurrency(deal.value, deal.currency)}
                           </span>
                         </button>
                       </li>

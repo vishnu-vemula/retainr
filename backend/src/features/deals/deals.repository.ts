@@ -316,7 +316,6 @@ export class DealsRepository implements IDealsRepository {
         { renewalDate: { lte: until } }, { renewalHealth: 'AT_RISK' }
       ] },
       select: { id: true, title: true, renewalDate: true, renewalHealth: true },
-      take: 200
     });
   }
 }

@@ -30,6 +30,8 @@ function buildFakeRepo(overrides: Partial<IDealsRepository> = {}): IDealsReposit
     deleteItem: vi.fn(),
     sumItemTotals: vi.fn().mockResolvedValue(20),
     setValue: vi.fn(),
+    addTemplateItems: vi.fn().mockResolvedValue(deal),
+    findRenewalAlerts: vi.fn().mockResolvedValue([]),
     ...overrides
   };
 }
@@ -37,13 +39,14 @@ function buildFakeRepo(overrides: Partial<IDealsRepository> = {}): IDealsReposit
 const buildDeps = () => ({
   audit: { log: vi.fn().mockResolvedValue(undefined) },
   notifications: { dispatch: vi.fn().mockResolvedValue(undefined) },
-  tags: { assertAllOwned: vi.fn().mockResolvedValue(undefined) }
+  tags: { assertAllOwned: vi.fn().mockResolvedValue(undefined) },
+  onboarding: { createForWonDeal: vi.fn().mockResolvedValue(undefined) }
 });
 
 describe('DealsService', () => {
   it('assigns next position in stage on create', async () => {
     const repo = buildFakeRepo();
-    const service = new DealsService(repo, buildDeps().audit, buildDeps().notifications, buildDeps().tags);
+    const service = new DealsService(repo, buildDeps().audit, buildDeps().notifications, buildDeps().tags, buildDeps().onboarding);
     const created = await service.create('u1', { title: 'New deal', value: 1000, stage: 'NEW' });
     expect(created.position).toBe(5);
     expect(repo.maxPositionInStage).toHaveBeenCalledWith('u1', 'NEW');
@@ -51,7 +54,7 @@ describe('DealsService', () => {
 
   it('defaults probability from the stage on create', async () => {
     const repo = buildFakeRepo();
-    const service = new DealsService(repo, buildDeps().audit, buildDeps().notifications, buildDeps().tags);
+    const service = new DealsService(repo, buildDeps().audit, buildDeps().notifications, buildDeps().tags, buildDeps().onboarding);
     const created = await service.create('u1', { title: 'Untyped', value: 0, stage: 'PROPOSAL' });
     expect(created.probability).toBe(50);
   });
@@ -59,8 +62,8 @@ describe('DealsService', () => {
   it('recalculates deal value from line items after add', async () => {
     const repo = buildFakeRepo();
     const deps = buildDeps();
-    const service = new DealsService(repo, deps.audit, deps.notifications, deps.tags);
-    const item = await service.addItem('u1', 'd1', { description: 'Item', quantity: 1, unitPrice: 10 });
+    const service = new DealsService(repo, deps.audit, deps.notifications, deps.tags, deps.onboarding);
+    const item = await service.addItem('u1', 'd1', { description: 'Item', quantity: 1, unitPrice: 10, kind: 'BASE' });
     expect(item.quantity).toBe(2);
     expect(repo.sumItemTotals).toHaveBeenCalledWith('d1');
     expect(repo.setValue).toHaveBeenCalledWith('d1', 'u1', 20);
@@ -71,10 +74,10 @@ describe('DealsService', () => {
       relationOwnedByOwner: vi.fn().mockImplementation((kind: string) => Promise.resolve(kind !== 'product'))
     });
     const deps = buildDeps();
-    const service = new DealsService(repo, deps.audit, deps.notifications, deps.tags);
+    const service = new DealsService(repo, deps.audit, deps.notifications, deps.tags, deps.onboarding);
 
     await expect(
-      service.addItem('u1', 'd1', { productId: 'foreign-product', description: 'Item', quantity: 1, unitPrice: 10 })
+      service.addItem('u1', 'd1', { productId: 'foreign-product', description: 'Item', quantity: 1, unitPrice: 10, kind: 'BASE' })
     ).rejects.toMatchObject({ code: 'NOT_FOUND' });
     expect(repo.addItem).not.toHaveBeenCalled();
   });
@@ -90,7 +93,7 @@ describe('DealsService', () => {
       } as DealItemWithProduct)
     });
     const deps = buildDeps();
-    const service = new DealsService(repo, deps.audit, deps.notifications, deps.tags);
+    const service = new DealsService(repo, deps.audit, deps.notifications, deps.tags, deps.onboarding);
 
     await expect(service.deleteItem('u1', 'd1', 'i1')).rejects.toMatchObject({ code: 'NOT_FOUND' });
     expect(repo.deleteItem).not.toHaveBeenCalled();
@@ -99,7 +102,7 @@ describe('DealsService', () => {
   it('notifies and audits on stage change to WON', async () => {
     const repo = buildFakeRepo();
     const deps = buildDeps();
-    const service = new DealsService(repo, deps.audit, deps.notifications, deps.tags);
+    const service = new DealsService(repo, deps.audit, deps.notifications, deps.tags, deps.onboarding);
     const updated = await service.update('u1', 'd1', { stage: 'WON' });
     expect(updated.stage).toBe('WON');
     expect(deps.notifications.dispatch).toHaveBeenCalledWith(
@@ -107,21 +110,23 @@ describe('DealsService', () => {
       expect.objectContaining({ type: 'DEAL_WON', dedupeKey: 'deal-won:d1' })
     );
     expect(deps.audit.log).toHaveBeenCalledWith('u1', 'STAGE_CHANGE', 'DEAL', 'd1', 'NEW → WON');
+    expect(deps.onboarding.createForWonDeal).toHaveBeenCalledWith('u1', 'd1', undefined);
   });
 
   it('does not notify when stage stays the same', async () => {
     const repo = buildFakeRepo();
     const deps = buildDeps();
-    const service = new DealsService(repo, deps.audit, deps.notifications, deps.tags);
+    const service = new DealsService(repo, deps.audit, deps.notifications, deps.tags, deps.onboarding);
     await service.update('u1', 'd1', { title: 'Renamed' });
     expect(deps.notifications.dispatch).not.toHaveBeenCalled();
+    expect(deps.onboarding.createForWonDeal).not.toHaveBeenCalled();
     expect(deps.audit.log).not.toHaveBeenCalledWith('u1', 'STAGE_CHANGE', 'DEAL', 'd1', expect.anything());
   });
 
   it('rejects reorder when a deal is not owned by the requester', async () => {
     const repo = buildFakeRepo({ findByIdAndOwner: vi.fn().mockResolvedValue(null) });
     const deps = buildDeps();
-    const service = new DealsService(repo, deps.audit, deps.notifications, deps.tags);
+    const service = new DealsService(repo, deps.audit, deps.notifications, deps.tags, deps.onboarding);
     const input: ReorderDealsInput = { updates: [{ id: 'd1', stage: 'WON', position: 0 }] };
     await expect(service.reorder('u1', input)).rejects.toMatchObject({ code: 'NOT_FOUND' });
     expect(repo.reorder).not.toHaveBeenCalled();
@@ -130,7 +135,7 @@ describe('DealsService', () => {
   it('applies stage rules, audit events, and won notifications during drag-and-drop moves', async () => {
     const repo = buildFakeRepo();
     const deps = buildDeps();
-    const service = new DealsService(repo, deps.audit, deps.notifications, deps.tags);
+    const service = new DealsService(repo, deps.audit, deps.notifications, deps.tags, deps.onboarding);
 
     await service.reorder('u1', { updates: [{ id: 'd1', stage: 'WON', position: 0 }] });
 
@@ -143,12 +148,13 @@ describe('DealsService', () => {
       'u1',
       expect.objectContaining({ type: 'DEAL_WON', dedupeKey: 'deal-won:d1' })
     );
+    expect(deps.onboarding.createForWonDeal).toHaveBeenCalledWith('u1', 'd1', undefined);
   });
 
   it('verifies tag ownership before replacing tags', async () => {
     const repo = buildFakeRepo();
     const deps = buildDeps();
-    const service = new DealsService(repo, deps.audit, deps.notifications, deps.tags);
+    const service = new DealsService(repo, deps.audit, deps.notifications, deps.tags, deps.onboarding);
     await service.setTags('u1', 'd1', { tagIds: ['t1', 't2'] });
     expect(deps.tags.assertAllOwned).toHaveBeenCalledWith(['t1', 't2'], 'u1');
     expect(repo.setTags).toHaveBeenCalledWith('d1', 'u1', ['t1', 't2']);

@@ -1,4 +1,4 @@
-import { AlarmClock, CheckCheck, Trophy } from 'lucide-react'
+import { AlarmClock, CalendarClock, CheckCheck, ShieldAlert, Trophy } from 'lucide-react'
 import clsx from 'clsx'
 import { PageHeader } from '../../../shared/components/page-header'
 import { SkeletonList } from '../../../shared/components/skeleton'
@@ -13,6 +13,8 @@ import { useMarkNotificationsRead } from '../hooks/use-mark-read'
 const typeIcons: Record<NotificationType, typeof AlarmClock> = {
   TASK_OVERDUE: AlarmClock,
   DEAL_WON: Trophy,
+  RENEWAL_DUE: CalendarClock,
+  RETAINER_AT_RISK: ShieldAlert,
 }
 
 interface NotificationRowProps {

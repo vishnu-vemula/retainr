@@ -13,6 +13,7 @@ function buildFakeRepo(overrides: Partial<ITasksRepository> = {}): ITasksReposit
     create: vi.fn().mockResolvedValue(task),
     update: vi.fn().mockResolvedValue(task),
     delete: vi.fn().mockResolvedValue(undefined),
+    createOnboardingTasks: vi.fn().mockResolvedValue([]),
     ...overrides
   };
 }
@@ -22,6 +23,18 @@ const buildAudit = () => ({ log: vi.fn().mockResolvedValue(undefined) });
 const baseQuery: ListTasksQuery = { page: 1, pageSize: 25 };
 
 describe('TasksService', () => {
+  it('creates the five onboarding handoffs with due dates and audit records', async () => {
+    const created = [{ id: 'onboarding-1', title: 'Collect assets and access' }] as TaskWithRelations[];
+    const repo = buildFakeRepo({ createOnboardingTasks: vi.fn().mockResolvedValue(created) });
+    const audit = buildAudit();
+    await new TasksService(repo, audit).createForWonDeal('u1', 'd1', 'c1');
+    expect(repo.createOnboardingTasks).toHaveBeenCalledWith('u1', 'd1', 'c1', expect.arrayContaining([
+      expect.objectContaining({ key: 'collect-assets', title: 'Collect assets and access', dueDate: expect.any(Date) }),
+      expect.objectContaining({ key: 'first-review', title: 'Schedule first client review', dueDate: expect.any(Date) })
+    ]));
+    expect(vi.mocked(repo.createOnboardingTasks).mock.calls[0]?.[3]).toHaveLength(5);
+    expect(audit.log).toHaveBeenCalledWith('u1', 'CREATE', 'TASK', 'onboarding-1', expect.stringContaining('Collect assets'));
+  });
   it('scopes list queries to the requesting owner', async () => {
     const repo = buildFakeRepo();
     const service = new TasksService(repo, buildAudit());

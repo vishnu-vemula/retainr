@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { AlarmClock, Bell, CheckCheck, Trophy } from 'lucide-react'
+import { AlarmClock, Bell, CalendarClock, CheckCheck, ShieldAlert, Trophy } from 'lucide-react'
 import clsx from 'clsx'
 import { Button } from '../../../shared/components/ui/button'
 import { Badge } from '../../../shared/components/ui/badge'
@@ -19,6 +19,8 @@ import { useMarkNotificationsRead } from '../hooks/use-mark-read'
 const typeIcons: Record<NotificationType, typeof Bell> = {
   TASK_OVERDUE: AlarmClock,
   DEAL_WON: Trophy,
+  RENEWAL_DUE: CalendarClock,
+  RETAINER_AT_RISK: ShieldAlert,
 }
 
 export function NotificationsBell() {

@@ -220,7 +220,12 @@ export class DashboardService {
       topCompanies,
       tasks: { total: taskTotal, open: taskOpen, overdue: taskOverdue },
       renewals: {
-        items: renewalItems.map(({ company, companyId, contactId, closedAt, serviceStartDate, createdAt, renewalProbability, ...item }) => item)
+        items: renewalItems.map((deal) => ({
+          id: deal.id, title: deal.title, companyName: deal.companyName, currency: deal.currency,
+          monthlyRecurringValue: deal.monthlyRecurringValue, renewalDate: deal.renewalDate,
+          daysUntilRenewal: deal.daysUntilRenewal, renewalHealth: deal.renewalHealth,
+          accountHealth: deal.accountHealth, daysSinceActivity: deal.daysSinceActivity
+        }))
           .sort((a, b) => (a.daysUntilRenewal ?? Number.MAX_SAFE_INTEGER) - (b.daysUntilRenewal ?? Number.MAX_SAFE_INTEGER)),
         within30: renewalItems.filter((deal) => deal.daysUntilRenewal !== null && deal.daysUntilRenewal >= 0 && deal.daysUntilRenewal <= 30).length,
         within60: renewalItems.filter((deal) => deal.daysUntilRenewal !== null && deal.daysUntilRenewal >= 0 && deal.daysUntilRenewal <= 60).length,
