@@ -5,9 +5,9 @@ import { LandingPage } from '@/src/features/landing/components/landing-page'
 import { useAuth } from '@/src/features/auth/use-auth'
 
 export default function DashboardRoute() {
-  const { configError } = useAuth()
+  const { firebaseUser } = useAuth()
 
-  if (configError) return <LandingPage />
+  if (!firebaseUser) return <LandingPage />
 
   return <DashboardPage />
 }

@@ -13,18 +13,18 @@ export default function CrmLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname()
 
   useEffect(() => {
-    if (!loading && !firebaseUser && !configError) router.replace('/login')
-  }, [configError, firebaseUser, loading, router])
+    if (!loading && !firebaseUser && pathname !== '/') router.replace('/login')
+  }, [firebaseUser, loading, pathname, router])
 
-  if (configError) {
-    if (pathname === '/') return children
-
+  if (configError && pathname !== '/') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4">
         <FirebaseSetupNotice error={configError} />
       </div>
     )
   }
+
+  if (pathname === '/' && !firebaseUser) return children
 
   if (loading || !firebaseUser) return <FullPageSpinner />
 
