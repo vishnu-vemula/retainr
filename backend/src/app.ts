@@ -28,7 +28,7 @@ export function createApp(): express.Express {
   app.use(
     pinoHttp({
       level: env.NODE_ENV === 'test' ? 'silent' : 'info',
-      redact: { paths: ['req.headers.authorization', 'res.headers["set-cookie"]'], remove: true }
+      redact: { paths: ['req.headers.authorization', 'req.url', 'req.originalUrl', 'res.headers["set-cookie"]'], remove: true }
     })
   );
   app.use(
