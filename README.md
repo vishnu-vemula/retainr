@@ -149,6 +149,7 @@ Sign up in the app with an email listed in `BOOTSTRAP_ADMIN_EMAILS` — you'll g
 | `npm run typecheck` | both | `tsc --noEmit` |
 | `npm run lint` | both | ESLint |
 | `npm test` / `npm run test:unit` | `backend` | Vitest unit tests with fake repositories (no DB needed) |
+| `npm test` | `frontend` | Node unit tests for form/API validation parity (no DB needed) |
 | `npm run test:integration` / `npm run test:e2e` | `backend` | Database-backed API integration tests — needs a scratch Postgres: `docker run -d --name retainr-pg -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=ultra_tasker -p 5434:5432 postgres:16-alpine` then `npx prisma migrate dev` |
 | `npm run test:regression` | `backend` | Regression tests for critical route ordering and owner-isolation boundaries (uses the same scratch Postgres) |
 | `npm run test:browser` | `backend` | Headless Chrome/Edge journey: real Next frontend → Express API → scratch PostgreSQL, including proposal choice, acceptance, onboarding, and renewal. Install frontend dependencies first; set `CHROME_BIN` if browser discovery fails. |

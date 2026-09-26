@@ -50,7 +50,7 @@ Operating manual for AI coding agents (opencode, Claude Code, Copilot Workspace,
 | Backend regression | `backend/` | `npm run test:regression` — needs the same scratch Postgres as integration tests |
 | Browser e2e | `backend/` | `npm run test:browser` — needs the scratch Postgres, frontend dependencies, and Chrome/Edge (`CHROME_BIN` optional) |
 | Run frontend | `frontend/` | `npm run dev` (port 3000; needs `.env` from `.env.example`) |
-| Frontend checks | `frontend/` | `npm run typecheck`, `npm run lint`, `npm run build` |
+| Frontend checks | `frontend/` | `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` |
 
 Running the app requires PostgreSQL and Firebase credentials (see README "Getting Started"). Typecheck/lint/test run without them.
 

@@ -105,12 +105,12 @@ export function ActivityDialog({ presetContactId, presetDealId, presetCompanyId,
         </div>
         <div className="space-y-2">
           <Label htmlFor="activity-title">Title</Label>
-          <Input id="activity-title" type="text" {...register('title')} />
+          <Input id="activity-title" type="text" maxLength={160} {...register('title')} />
           {errors.title ? <p className="text-sm text-destructive">{errors.title.message}</p> : null}
         </div>
         <div className="space-y-2">
           <Label htmlFor="activity-duration">Duration (minutes)</Label>
-          <Input id="activity-duration" type="number" min="0" step="1" {...register('durationMin')} />
+          <Input id="activity-duration" type="number" min="1" max="1440" step="1" {...register('durationMin')} />
           {errors.durationMin ? (
             <p className="text-sm text-destructive">{errors.durationMin.message}</p>
           ) : null}
