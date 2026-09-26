@@ -68,7 +68,7 @@ export function AppFooter() {
               <li className="flex items-center justify-between gap-3">
                 Search everything
                 <span className="flex gap-1">
-                  <Kbd>⌘</Kbd>
+                  <Kbd>Ctrl</Kbd>
                   <Kbd>K</Kbd>
                 </span>
               </li>

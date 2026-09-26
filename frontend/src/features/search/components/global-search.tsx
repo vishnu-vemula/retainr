@@ -69,7 +69,7 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
           type="search"
           placeholder="Search anything…"
           aria-label="Search contacts, companies and deals"
-          className="rounded-full border-transparent bg-secondary/80 pl-10 pr-14 shadow-none hover:border-border focus-visible:bg-card [&::-webkit-search-cancel-button]:hidden"
+          className="rounded-full border-transparent bg-secondary/80 pl-10 pr-16 shadow-none hover:border-border focus-visible:bg-card [&::-webkit-search-cancel-button]:hidden"
           value={query}
           onChange={(event) => {
             setQuery(event.target.value)
@@ -80,7 +80,7 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
           }}
         />
         <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 items-center gap-0.5 rounded-md border border-border bg-card px-1.5 py-0.5 font-sans text-[10px] font-medium text-muted-foreground sm:flex">
-          ⌘K
+          Ctrl K
         </kbd>
       </div>
       {open && debouncedQuery.length >= 1 ? (
