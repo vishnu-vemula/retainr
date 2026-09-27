@@ -31,7 +31,7 @@ export class UsersRepository implements IUsersRepository {
     return this.prisma.user.upsert({
       where: { id: input.id },
       create: { id: input.id, email: input.email, role: input.forceAdmin ? 'ADMIN' : 'MEMBER', ...profile },
-      update: input.forceAdmin ? { ...profile, role: 'ADMIN' } : profile
+      update: input.forceAdmin ? { ...profile, email: input.email, role: 'ADMIN' } : profile
     });
   }
 

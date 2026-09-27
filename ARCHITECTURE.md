@@ -76,7 +76,7 @@ Sanctioned Prisma aggregates (no repository): `DashboardService` (stats) and `Se
 1. Client sends `Authorization: Bearer <Firebase ID token>`.
 2. `AuthMiddleware.requireAuth` verifies via `firebase-admin` `verifyIdToken`.
 3. `UsersService.ensureFromToken` refreshes the `User` row on each request so role changes on another API instance take effect immediately. Bootstrap promotion requires `email_verified: true`.
-4. `req.user = { uid, email, role, emailVerified }`; `requireRole('ADMIN')` guards admin routes and rejects unverified admins.
+4. `req.user = { uid, email, role, emailVerified }`; `emailVerified` also requires the verified token email to match the stored user email. `requireRole('ADMIN')` rejects admins without that match.
 5. Errors: 401 `UNAUTHENTICATED`, 403 `FORBIDDEN` — always the error envelope.
 
 ### 2.5 Error handling

@@ -10,7 +10,11 @@ import { UsersService } from './users.service';
 vi.mock('../../config/env', () => ({ bootstrapAdminEmails: ['admin@example.com'] }));
 vi.mock('../../database/firebase', () => ({
   firebaseAuth: {
-    verifyIdToken: vi.fn(async (token: string) => ({ uid: token, email: 'admin@example.com', email_verified: token === 'verified' })),
+    verifyIdToken: vi.fn(async (token: string) => ({
+      uid: token === 'moved' ? 'legacy' : token,
+      email: token === 'moved' ? 'other@example.com' : 'admin@example.com',
+      email_verified: token !== 'legacy'
+    })),
     setCustomUserClaims: vi.fn().mockResolvedValue(undefined)
   },
   hasFullFirebaseCredentials: true
@@ -22,7 +26,7 @@ function makeRepo() {
     upsertFromFirebase: vi.fn(async (input: UpsertFromFirebaseInput) => {
       const user = {
         id: input.id,
-        email: input.email,
+        email: input.forceAdmin ? input.email : users.get(input.id)?.email ?? input.email,
         displayName: input.displayName,
         photoURL: input.photoURL,
         role: input.forceAdmin ? 'ADMIN' : users.get(input.id)?.role ?? 'MEMBER'
@@ -64,6 +68,14 @@ describe('UsersService authorization', () => {
     expect(user.role).toBe('ADMIN');
   });
 
+  it('updates the stored email when a verified account becomes a bootstrap admin', async () => {
+    const { repo } = makeRepo();
+    const service = new UsersService(repo);
+    await service.ensureFromToken({ uid: 'owner', email: 'old@example.com', emailVerified: true });
+    const user = await service.ensureFromToken({ uid: 'owner', email: 'admin@example.com', emailVerified: true });
+    expect(user).toMatchObject({ email: 'admin@example.com', role: 'ADMIN' });
+  });
+
   it('applies role changes on the next authenticated request', async () => {
     const { repo } = makeRepo();
     const service = new UsersService(repo);
@@ -98,6 +110,9 @@ describe('UsersService authorization', () => {
     const response = await request(app).get('/admin').set('Authorization', 'Bearer legacy');
     expect(response.status).toBe(403);
     expect(response.body.error.code).toBe('EMAIL_NOT_VERIFIED');
+    const moved = await request(app).get('/admin').set('Authorization', 'Bearer moved');
+    expect(moved.status).toBe(403);
+    expect(moved.body.error.code).toBe('EMAIL_NOT_VERIFIED');
     const verified = await request(app).get('/admin').set('Authorization', 'Bearer verified');
     expect(verified.status).toBe(200);
   });

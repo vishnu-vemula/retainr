@@ -27,7 +27,7 @@ export class AuthMiddleware {
         name: decoded.name,
         picture: decoded.picture
       });
-      innerReq.user = this.users.toAuthUser(user, decoded.email_verified === true);
+      innerReq.user = this.users.toAuthUser(user, decoded.email_verified === true && decoded.email?.toLowerCase() === user.email.toLowerCase());
       innerNext();
     })(req, _res, next);
   };
