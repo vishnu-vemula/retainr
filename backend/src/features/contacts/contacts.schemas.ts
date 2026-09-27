@@ -1,5 +1,14 @@
 import { z } from 'zod';
 
+const websiteSchema = z.string().trim().max(200).url().refine((value) => {
+  try {
+    const url = new URL(value);
+    return (url.protocol === 'http:' || url.protocol === 'https:') && !url.username && !url.password;
+  } catch {
+    return false;
+  }
+}, 'Website must be an HTTP or HTTPS URL without credentials');
+
 export const listContactsQuerySchema = z.object({
   search: z.string().trim().min(1).optional(),
   status: z.enum(['LEAD', 'QUALIFIED', 'CUSTOMER', 'CHURNED']).optional(),
@@ -14,7 +23,7 @@ const contactBodySchema = z.object({
   phone: z.string().trim().max(40).nullish(),
   position: z.string().trim().max(80).nullish(),
   status: z.enum(['LEAD', 'QUALIFIED', 'CUSTOMER', 'CHURNED']).optional(),
-  website: z.string().trim().max(200).nullish(),
+  website: websiteSchema.nullish(),
   city: z.string().trim().max(80).nullish(),
   country: z.string().trim().max(80).nullish(),
   source: z.enum(['REFERRAL', 'WEBSITE', 'CAMPAIGN', 'COLD_OUTREACH', 'EVENT', 'OTHER']).nullish(),

@@ -22,6 +22,7 @@ import {
   TableRow,
 } from '../../../shared/components/ui/table'
 import { formatDate, formatCurrency, titleCase } from '../../../shared/lib/format'
+import { safeHttpUrl } from '../../../shared/lib/safe-http-url'
 import { ActivityTimeline } from '../../activities/components/activity-timeline'
 import { ActivityDialog } from '../../activities/components/activity-dialog'
 import { TagSelect } from '../../tags/components/tag-select'
@@ -44,6 +45,8 @@ export function ContactDetailPage() {
       </div>
     )
   }
+
+  const websiteHref = safeHttpUrl(contact.website)
 
   const startEditTags = () => {
     setDraftTagIds(contact.tags.map((tag) => tag.id))
@@ -99,12 +102,12 @@ export function ContactDetailPage() {
               },
               {
                 label: 'Website',
-                value: contact.website ? (
-                  <a className="text-primary hover:text-primary/80" href={contact.website} target="_blank" rel="noreferrer">
+                value: websiteHref ? (
+                  <a className="text-primary hover:text-primary/80" href={websiteHref} target="_blank" rel="noopener noreferrer">
                     {contact.website}
                   </a>
                 ) : (
-                  '—'
+                  contact.website ?? '—'
                 ),
               },
               { label: 'Source', value: contact.source ? titleCase(contact.source) : '—' },

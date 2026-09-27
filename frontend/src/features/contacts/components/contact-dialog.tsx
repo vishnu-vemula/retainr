@@ -156,7 +156,7 @@ export function ContactDialog({ contact, onClose }: ContactDialogProps) {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="contact-website">Website</Label>
-            <Input id="contact-website" type="text" placeholder="acme.com" {...register('website')} />
+            <Input id="contact-website" type="url" placeholder="https://acme.com" {...register('website')} />
           </div>
           <div className="space-y-2">
             <Label>Company</Label>
