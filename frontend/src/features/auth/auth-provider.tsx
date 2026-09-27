@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   onAuthStateChanged,
   signOut as firebaseSignOut,
@@ -8,14 +9,18 @@ import { getFirebaseAuth } from '../../shared/lib/firebase'
 import { postSession } from './api/auth-api'
 import { AuthContext, type AuthContextValue } from './auth-context'
 import type { User } from '../../shared/types'
+import { clearQueriesOnIdentityChange } from './model/auth-cache'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient()
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null)
   const [profile, setProfile] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [configError, setConfigError] = useState<string | null>(null)
 
   useEffect(() => {
+    let previousUid: string | null | undefined
+    let authSequence = 0
     let auth
     try {
       auth = getFirebaseAuth()
@@ -29,34 +34,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      const uid = user?.uid ?? null
+      clearQueriesOnIdentityChange(queryClient, previousUid, uid)
+      previousUid = uid
+      const sequence = ++authSequence
+      setLoading(true)
+      setProfile(null)
       setFirebaseUser(user)
       if (user) {
         try {
           const synced = await postSession()
-          setProfile(synced)
+          if (sequence === authSequence) setProfile(synced)
         } catch {
-          setProfile(null)
+          if (sequence === authSequence) setProfile(null)
         }
-      } else {
-        setProfile(null)
       }
-      setLoading(false)
+      if (sequence === authSequence) setLoading(false)
     })
-    return unsubscribe
-  }, [])
+    return () => {
+      authSequence += 1
+      unsubscribe()
+    }
+  }, [queryClient])
 
   const value = useMemo<AuthContextValue>(
     () => ({
       firebaseUser,
       profile,
-      role: profile?.role ?? null,
+      role: profile?.role === 'ADMIN' && !firebaseUser?.emailVerified ? 'MEMBER' : profile?.role ?? null,
       loading,
       configError,
       signOut: async () => {
         await firebaseSignOut(getFirebaseAuth())
+        queryClient.clear()
       },
     }),
-    [firebaseUser, profile, loading, configError],
+    [firebaseUser, profile, loading, configError, queryClient],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

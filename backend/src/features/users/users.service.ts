@@ -5,23 +5,10 @@ import { firebaseAuth, hasFullFirebaseCredentials } from '../../database/firebas
 import { bootstrapAdminEmails } from '../../config/env';
 import type { IUsersRepository, ListUsersInput, UpsertFromFirebaseInput } from './users.repository';
 
-const USER_CACHE_TTL_MS = 60 * 60 * 1000;
-
-interface CacheEntry {
-  user: User;
-  syncedAt: number;
-}
-
 export class UsersService {
-  private readonly cache = new Map<string, CacheEntry>();
-
   constructor(private readonly repo: IUsersRepository) {}
 
-  async ensureFromToken(decoded: { uid: string; email?: string; name?: string; picture?: string }): Promise<User> {
-    const cached = this.cache.get(decoded.uid);
-    if (cached && Date.now() - cached.syncedAt < USER_CACHE_TTL_MS) {
-      return cached.user;
-    }
+  async ensureFromToken(decoded: { uid: string; email?: string; emailVerified?: boolean; name?: string; picture?: string }): Promise<User> {
     if (!decoded.email) {
       throw new AppError(401, 'UNAUTHENTICATED', 'Token has no email claim');
     }
@@ -30,19 +17,16 @@ export class UsersService {
       email: decoded.email.toLowerCase(),
       displayName: decoded.name ?? null,
       photoURL: decoded.picture ?? null,
-      forceAdmin: bootstrapAdminEmails.includes(decoded.email.toLowerCase())
+      forceAdmin: decoded.emailVerified === true && bootstrapAdminEmails.includes(decoded.email.toLowerCase())
     };
-    const user = await this.repo.upsertFromFirebase(input);
-    this.cache.set(decoded.uid, { user, syncedAt: Date.now() });
-    return user;
+    return this.repo.upsertFromFirebase(input);
   }
 
-  toAuthUser(user: User): AuthUser {
-    return { uid: user.id, email: user.email, role: user.role };
+  toAuthUser(user: User, emailVerified: boolean): AuthUser {
+    return { uid: user.id, email: user.email, role: user.role, emailVerified };
   }
 
   async session(uid: string, displayName?: string): Promise<User> {
-    this.cache.delete(uid);
     if (displayName !== undefined && displayName.length > 0) {
       return this.repo.updateProfile(uid, { displayName });
     }
@@ -70,7 +54,6 @@ export class UsersService {
           'Add the service account key to enable claim syncing (see .env.example).'
       );
     }
-    this.cache.delete(targetId);
     return user;
   }
 }

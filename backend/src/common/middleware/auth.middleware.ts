@@ -14,7 +14,7 @@ export class AuthMiddleware {
       if (!header?.startsWith('Bearer ')) {
         throw new AppError(401, 'UNAUTHENTICATED', 'Missing bearer token');
       }
-      let decoded: { uid: string; email?: string; name?: string; picture?: string };
+      let decoded: { uid: string; email?: string; email_verified?: boolean; name?: string; picture?: string };
       try {
         decoded = await firebaseAuth.verifyIdToken(header.slice(7));
       } catch {
@@ -23,10 +23,11 @@ export class AuthMiddleware {
       const user = await this.users.ensureFromToken({
         uid: decoded.uid,
         email: decoded.email,
+        emailVerified: decoded.email_verified,
         name: decoded.name,
         picture: decoded.picture
       });
-      innerReq.user = this.users.toAuthUser(user);
+      innerReq.user = this.users.toAuthUser(user, decoded.email_verified === true);
       innerNext();
     })(req, _res, next);
   };
@@ -35,6 +36,9 @@ export class AuthMiddleware {
     return asyncHandler(async (req: Request, _res: Response, next: NextFunction) => {
       if (req.user?.role !== role) {
         throw new AppError(403, 'FORBIDDEN', `This action requires the ${role} role`);
+      }
+      if (role === 'ADMIN' && !req.user.emailVerified) {
+        throw new AppError(403, 'EMAIL_NOT_VERIFIED', 'Verify your email before using admin features');
       }
       next();
     });

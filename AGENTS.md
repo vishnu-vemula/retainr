@@ -84,8 +84,9 @@ Running the app requires PostgreSQL and Firebase credentials (see README "Gettin
 
 ## Known landmines (verify before assuming)
 
-- **Role changes need a token refresh.** `PATCH /users/:id/role` sets a Firebase custom claim + DB row; the affected user's authorization only updates after their next ID-token refresh (frontend refreshes on reload/re-login — tell users to re-login).
-- **`BOOTSTRAP_ADMIN_EMAILS` promotes on login only** — it can't demote; remove a user from the list and change their role in the admin UI instead.
+- **Role changes update API authorization immediately.** The API reads the current DB role on each request. The affected user's app display and Firebase custom claim refresh on re-login — tell users to sign out and back in.
+- **Admin access requires a verified email.** Bootstrap promotion checks `email_verified`, and admin routes reject unverified tokens. Password signup sends a verification email; Account settings can resend it.
+- **`BOOTSTRAP_ADMIN_EMAILS` only promotes** verified accounts during authenticated requests; it cannot demote. Remove a user from the list and change their role in the admin UI instead.
 - **Seed ownership** — `npm run db:seed` replaces all CRM rows owned by `SEED_OWNER_UID` (placeholder default). Use a demo UID; run it with your UID only if you intend to replace that account's data.
 - **Firebase private key escaping** — `FIREBASE_PRIVATE_KEY` must keep `\n` escapes; prefer the single-line `FIREBASE_SERVICE_ACCOUNT_KEY` JSON on Render/Heroku-style deploys.
 - **`FIREBASE_SERVICE_ACCOUNT_KEY` beats discrete vars** which beat `GOOGLE_APPLICATION_CREDENTIALS` (ADC). Exactly one mechanism is needed or every request 401s/500s at startup.

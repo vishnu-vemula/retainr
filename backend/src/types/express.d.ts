@@ -4,6 +4,7 @@ export interface AuthUser {
   uid: string;
   email: string;
   role: Role;
+  emailVerified: boolean;
 }
 
 declare global {

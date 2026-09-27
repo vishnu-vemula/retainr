@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { sendPasswordResetEmail } from 'firebase/auth'
+import { sendEmailVerification, sendPasswordResetEmail } from 'firebase/auth'
 import { FirebaseError } from 'firebase/app'
 import { toast } from 'react-toastify'
 import { ArrowUpRight, Copy, KeyRound, LogOut, ShieldCheck } from 'lucide-react'
@@ -38,13 +38,14 @@ function formatTimestamp(value: string | undefined | null): string {
 }
 
 export function AccountPage() {
-  const { firebaseUser, profile, signOut } = useAuth()
+  const { firebaseUser, profile, role, signOut } = useAuth()
   const router = useRouter()
   const [sendingReset, setSendingReset] = useState(false)
+  const [sendingVerification, setSendingVerification] = useState(false)
 
   const email = firebaseUser?.email ?? profile?.email ?? ''
   const displayName = profile?.displayName ?? firebaseUser?.displayName ?? 'Your account'
-  const isAdmin = profile?.role === 'ADMIN'
+  const isAdmin = role === 'ADMIN'
   const providerId = firebaseUser?.providerData[0]?.providerId ?? 'password'
   const usesPassword = firebaseUser?.providerData.some((provider) => provider.providerId === 'password') ?? false
   const uid = firebaseUser?.uid ?? profile?.id ?? ''
@@ -68,6 +69,19 @@ export function AccountPage() {
       toast.error(error instanceof FirebaseError ? error.message : 'Could not send the reset email')
     } finally {
       setSendingReset(false)
+    }
+  }
+
+  const sendVerification = async () => {
+    if (!firebaseUser) return
+    setSendingVerification(true)
+    try {
+      await sendEmailVerification(firebaseUser)
+      toast.success(`Verification email sent to ${email}`)
+    } catch (error) {
+      toast.error(error instanceof FirebaseError ? error.message : 'Could not send the verification email')
+    } finally {
+      setSendingVerification(false)
     }
   }
 
@@ -139,6 +153,12 @@ export function AccountPage() {
             <h2 className="text-lg font-semibold tracking-tight text-foreground">Security</h2>
             <p className="mt-1 text-sm text-muted-foreground">Manage how you sign in to Retainr.</p>
             <div className="mt-5 space-y-3">
+              {firebaseUser && !firebaseUser.emailVerified ? (
+                <Button type="button" variant="outline" className="w-full justify-start shadow-none" disabled={sendingVerification} onClick={() => void sendVerification()}>
+                  <ShieldCheck className="h-4 w-4" />
+                  {sendingVerification ? 'Sending…' : 'Send verification email'}
+                </Button>
+              ) : null}
               {usesPassword ? (
                 <Button type="button" variant="outline" className="w-full justify-start shadow-none" disabled={sendingReset} onClick={() => void sendReset()}>
                   <KeyRound className="h-4 w-4" />
@@ -156,8 +176,7 @@ export function AccountPage() {
               </Button>
             </div>
             <p className="mt-5 rounded-2xl bg-secondary/70 p-4 text-xs leading-relaxed text-muted-foreground">
-              Role changes made by an administrator take effect after your next sign-in. Sign out and back in to apply
-              them right away.
+              Admin access requires a verified email. After verifying your email or receiving a new role, sign out and back in to refresh the account display.
             </p>
           </Card>
 

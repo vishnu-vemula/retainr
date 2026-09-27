@@ -30,7 +30,7 @@ A light, warm-neutral UI with a red-orange accent. The public website uses big d
 ## Features
 
 - **Public website** — home, features, pricing, security, about and contact pages (server-rendered, SEO metadata); works even before Firebase is configured
-- **Auth** — Firebase Authentication (email/password + Google OAuth); the API verifies Bearer ID tokens on every request; ADMIN/MEMBER roles via custom claims
+- **Auth** — Firebase Authentication (email/password + Google OAuth); the API verifies Bearer ID tokens and reads the current database role on every request; role changes also sync Firebase custom claims
 - **Contacts** — CRUD with statuses, sources, company links, tags, search + pagination, CSV export
 - **Companies** — profiles with industry, size, revenue; detail view with contacts and deals
 - **Agency pipeline** — Lead → Discovery → Scope sent → Client review → Won/Lost. Stored enum values stay `NEW`, `QUALIFIED`, `PROPOSAL`, `NEGOTIATION`, `WON`, `LOST` for existing data.
@@ -138,7 +138,7 @@ npm run dev             # app on http://localhost:3000
 
 ### 4. First login
 
-Sign up in the app with an email listed in `BOOTSTRAP_ADMIN_EMAILS` — you'll get the ADMIN role and access to user management.
+Sign up with an email listed in `BOOTSTRAP_ADMIN_EMAILS`, verify it using the email Firebase sends, then sign out and back in. Bootstrap promotion and admin API access require a verified email. Account settings can resend the verification email. Role changes are enforced by the API on the next request; sign in again to refresh the role shown in the app.
 
 ## Scripts
 

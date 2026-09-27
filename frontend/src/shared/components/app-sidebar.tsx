@@ -79,11 +79,11 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ open, onClose }: AppSidebarProps) {
-  const { profile, firebaseUser, signOut } = useAuth()
+  const { profile, firebaseUser, role, signOut } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
 
-  const isAdmin = profile?.role === 'ADMIN'
+  const isAdmin = role === 'ADMIN'
   const displayName = profile?.displayName ?? firebaseUser?.displayName ?? 'Account'
   const email = firebaseUser?.email ?? ''
 

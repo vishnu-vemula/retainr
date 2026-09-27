@@ -22,7 +22,7 @@ PostgreSQL via Prisma ORM
 
 - **Identity** lives in Firebase; **authorization** (roles) is a Firebase custom claim mirrored to a `User` row.
 - **Data ownership**: every CRM row carries `ownerId`; all queries filter by it (law 7). The DB layer enforces it with `@@unique([id, ownerId])` compound keys.
-- **Admin**: users in `BOOTSTRAP_ADMIN_EMAILS` are promoted on first login; admins can change roles via `PATCH /users/:id/role` (sets claim + row).
+- **Admin**: users with verified emails in `BOOTSTRAP_ADMIN_EMAILS` are promoted on login; admins can change roles via `PATCH /users/:id/role` (sets claim + row). Admin routes require a verified email.
 
 ## 2. Backend (`backend/`)
 
@@ -75,8 +75,8 @@ Sanctioned Prisma aggregates (no repository): `DashboardService` (stats) and `Se
 
 1. Client sends `Authorization: Bearer <Firebase ID token>`.
 2. `AuthMiddleware.requireAuth` verifies via `firebase-admin` `verifyIdToken`.
-3. `UsersService.ensureFromToken` upserts/refreshes the `User` row (1h in-memory cache per uid) and applies bootstrap-admin promotion.
-4. `req.user = { uid, email, role }`; `requireRole('ADMIN')` guards admin routes.
+3. `UsersService.ensureFromToken` refreshes the `User` row on each request so role changes on another API instance take effect immediately. Bootstrap promotion requires `email_verified: true`.
+4. `req.user = { uid, email, role, emailVerified }`; `requireRole('ADMIN')` guards admin routes and rejects unverified admins.
 5. Errors: 401 `UNAUTHENTICATED`, 403 `FORBIDDEN` — always the error envelope.
 
 ### 2.5 Error handling
@@ -149,7 +149,7 @@ Views are `.tsx` (app routes + components); operations are `.ts` (api, hooks, mo
 
 ### 3.3 Auth on the client
 
-`shared/lib/firebase.ts` lazily initializes the SDK (client-only singleton `getFirebaseAuth()`) from `NEXT_PUBLIC_FIREBASE_*` env. `AuthProvider` (features/auth) tracks the Firebase user, calls `POST /auth/session` once per login to sync the profile + role, and exposes `{ firebaseUser, profile, role, loading }`. Route guards live in `app/`: the `(crm)` layout redirects unauthenticated users to `/login`, and `app/(crm)/settings/users/page.tsx` is ADMIN-only.
+`shared/lib/firebase.ts` lazily initializes the SDK (client-only singleton `getFirebaseAuth()`) from `NEXT_PUBLIC_FIREBASE_*` env. `AuthProvider` (features/auth) tracks the Firebase user, calls `POST /auth/session` once per login to sync the profile + role, and exposes `{ firebaseUser, profile, role, loading }`. It clears React Query data when the account changes and ignores responses from an earlier auth state. Password signup sends a verification email, and Account settings can resend it. Route guards live in `app/`: the `(crm)` layout redirects unauthenticated users to `/login`, and `app/(crm)/settings/users/page.tsx` is ADMIN-only.
 
 ### 3.4 UI system
 

@@ -8,7 +8,7 @@ vi.mock('../src/database/firebase', () => ({
       if (token === 'bad-token') {
         throw new Error('invalid token');
       }
-      return { uid: token, email: `${token}@example.com`, name: 'E2E Tester' };
+      return { uid: token, email: `${token}@example.com`, email_verified: true, name: 'E2E Tester' };
     },
     setCustomUserClaims: vi.fn().mockResolvedValue(undefined)
   }

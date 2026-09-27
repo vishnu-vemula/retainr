@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
+import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from 'firebase/auth'
 import { toast } from 'react-toastify'
 import { FirebaseError } from 'firebase/app'
 import { Loader2 } from 'lucide-react'
@@ -28,6 +28,12 @@ export function SignupForm() {
     try {
       const credential = await createUserWithEmailAndPassword(getFirebaseAuth(), values.email, values.password)
       await updateProfile(credential.user, { displayName: values.name })
+      try {
+        await sendEmailVerification(credential.user)
+        toast.info('Check your email to verify your account. Sign in again after verification.')
+      } catch {
+        toast.error('Account created, but the verification email could not be sent. Retry from Account settings.')
+      }
       await postSession(values.name)
     } catch (error) {
       const message = error instanceof FirebaseError ? error.message : 'Failed to create account'
