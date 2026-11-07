@@ -84,7 +84,7 @@ User (Firebase UID, role)
 AuditLog (CREATE/UPDATE/DELETE/STAGE_CHANGE per entity, owner-scoped)
 ```
 
-Every record is scoped by `ownerId` — users only ever see their own CRM data. Full rules: [`ARCHITECTURE.md`](ARCHITECTURE.md). Agent workflows: [`AGENTS.md`](AGENTS.md) and [`SKILLS.md`](SKILLS.md).
+Every record is scoped by `ownerId` — users only ever see their own CRM data. Full rules: [`ARCHITECTURE.md`](ARCHITECTURE.md). Guided tour of architecture and features: [`docs/OVERVIEW.md`](docs/OVERVIEW.md). Agent workflows: [`AGENTS.md`](AGENTS.md) and [`SKILLS.md`](SKILLS.md).
 
 ## Getting Started
 
